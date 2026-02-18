@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir /b:*)",
+      "Bash(npm install:*)",
+      "Bash(test:*)",
+      "Bash(wc:*)",
+      "Bash(findstr:*)",
+      "Bash(tasklist:*)",
+      "Bash(npm run create-admin:*)",
+      "Bash(timeout:*)",
+      "Bash(netstat:*)",
+      "Bash(curl:*)",
+      "Bash(taskkill //F //PID 5204)",
+      "Bash(taskkill //F //PID 4772)",
+      "Bash(taskkill:*)"
+    ]
+  }
+}

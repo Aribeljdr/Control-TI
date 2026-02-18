@@ -1,0 +1,31 @@
+================================================================================
+  RESUMEN EJECUTIVO ACTUALIZADO - 09/01/2026
+  Carpeta: datos_gemini
+================================================================================
+
+Este resumen reemplaza la información de los .txt antiguos.
+
+1. ESTADO DEL CÓDIGO
+   - El código está MÁS AVANZADO que la documentación original.
+   - Se encontraron funcionalidades complejas en el backend que no estaban totalmente documentadas (Auditoría de credenciales, Relaciones de periféricos, Diagnóstico de riesgos).
+
+2. ARQUITECTURA DE DATOS
+   - La base de datos está lista para uso empresarial.
+   - Soporta auditoría (quién hizo qué).
+   - Soporta estructuras flexibles (campos dinámicos).
+
+3. LO QUE FALTA (Próximos Pasos Técnicos)
+   - Seguridad: Encriptación del campo 'password' en la colección de credenciales (el código actual guarda texto plano).
+   - Configuración: Generación de JWT Secrets reales (actualmente usa defaults inseguros).
+
+4. UBICACIÓN DE LA VERDAD
+   - Para ver la estructura de datos real: Leer `backend/src/models/*.ts` (o ver `MODELO_DATOS_ACTUAL.md`).
+   - Para ver la lógica de negocio: Leer `backend/src/controllers/*.ts`.
+   - La documentación antigua en la raíz puede servir de guía general, pero `datos_gemini` contiene la descripción técnica exacta a día de hoy.
+
+================================================================================
+  INSTRUCCIONES PARA EL USUARIO
+================================================================================
+1. Usa `datos_gemini/ESTADO_FUNCIONAL_REAL.md` para entender qué puede hacer tu sistema hoy.
+2. Si vas a desarrollar nuevas funciones, basa tus modelos en `datos_gemini/MODELO_DATOS_ACTUAL.md`.
+3. Mantén la contraseña de desarrollo por ahora (como solicitaste), pero recuerda el tema de la encriptación de credenciales para el futuro.

@@ -1,0 +1,63 @@
+================================================================================
+  ESTRUCTURA ACTUAL DEL SISTEMA (v2 - Generada por Gemini)
+  Fecha de Análisis: 09/01/2026
+================================================================================
+
+El sistema sigue una arquitectura MERN (MongoDB, Express, React, Node) bien estructurada.
+A diferencia de versiones anteriores, se detectan módulos avanzados de Credenciales y Relaciones entre Equipos.
+
+📂 RAÍZ DEL PROYECTO
+├── .env.local             # Configuración del Frontend (API URL)
+├── .env.example           # Plantilla de configuración
+├── index.css              # Estilos globales y utilidades
+├── types.ts               # "Fuente de la Verdad" de los tipos de datos TypeScript
+├── vite.config.ts         # Configuración del bundler Vite
+│
+├── 📂 backend
+│   ├── .env               # Configuración del Backend (DB, JWT, Secretos)
+│   ├── src
+│   │   ├── 📂 config      # Conexión DB
+│   │   ├── 📂 controllers # Lógica de negocio (6 controladores principales)
+│   │   ├── 📂 middleware  # Auth, Validación (Zod), Manejo de Errores
+│   │   ├── 📂 models      # Schemas de Mongoose (La estructura de datos real)
+│   │   │   ├── Bitacora.ts    # Logs diarios y actividades
+│   │   │   ├── Credential.ts  # [ACTUALIZADO] Gestión avanzada de contraseñas
+│   │   │   ├── Equipment.ts   # [ACTUALIZADO] Inventario con componentes y riesgos
+│   │   │   ├── Maintenance.ts # Registros preventivos/correctivos
+│   │   │   ├── Manual.ts      # Wiki/Base de conocimiento
+│   │   │   └── User.ts        # Usuarios y Roles
+│   │   ├── 📂 routes      # Definición de API Endpoints
+│   │   ├── 📂 scripts     # Utilidades (createAdmin, listUsers)
+│   │   └── server.ts      # Punto de entrada del servidor
+│
+└── 📂 pages (Frontend Views)
+    ├── Dashboard.tsx            # Vista principal con métricas
+    ├── Login.tsx                # Autenticación
+    ├── Inventory.tsx            # Lista de equipos (Filtros y Tablas)
+    ├── EquipmentDetail.tsx      # Detalle profundo de un equipo
+    ├── BitacoraTI.tsx           # Gestión de logs diarios
+    ├── ServiciosContrasenas.tsx # [COMPLEJO] Gestor de credenciales
+    ├── ManualesTI.tsx           # Wiki interna
+    ├── Reports.tsx              # Generación de reportes
+    ├── RespaldoDatos.tsx        # Importar/Exportar JSON
+    └── Splash/Intro.tsx         # Pantallas de bienvenida
+
+================================================================================
+  CAMBIOS RECIENTES DETECTADOS (vs Documentación Antigua)
+================================================================================
+
+1. MÓDULO DE CREDENCIALES (Credential.ts):
+   - Se detectó soporte para "Campos Dinámicos" (dynamicFields).
+   - Sistema de Auditoría completo (History/AuditEntry).
+   - Categorización avanzada (CredentialCategory).
+   - Verificación de credenciales (isVerified, verifiedBy).
+
+2. MÓDULO DE INVENTARIO (Equipment.ts):
+   - Soporte explícito para periféricos (Mouse, Teclado, Monitor).
+   - Relaciones de asignación (assignedKeyboard, assignedMouse, etc.).
+   - Análisis de riesgos detallado (slowness, restarts, diskHealth).
+   - Recomendaciones automatizadas (Mantener, Actualizar, Renovar).
+
+3. BITÁCORA TI:
+   - Separación clara entre "Solicitudes" (Tickets) y "Actividades" (Tareas).
+   - Estados de día (OK, RISK, INCIDENT).

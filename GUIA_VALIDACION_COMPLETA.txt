@@ -1,0 +1,2303 @@
+================================================================================
+  GUÍA COMPLETA DE VALIDACIÓN Y PRUEBAS DEL SISTEMA
+  Sistema de Mantenimiento Preventivo IT
+================================================================================
+
+Esta guía te explica PASO A PASO cómo validar que todo el sistema funcione
+correctamente. Te indica qué hace cada botón, cómo debería comportarse cada
+módulo y cómo verificar que todo esté funcionando bien.
+
+================================================================================
+  📋 ÍNDICE
+================================================================================
+
+1. PREPARACIÓN INICIAL
+2. PANTALLA DE INICIO (SPLASH)
+3. PANTALLA DE INTRODUCCIÓN
+4. PANTALLA DE LOGIN
+5. DASHBOARD (Panel Principal)
+6. MÓDULO: INVENTARIO DE EQUIPOS
+7. MÓDULO: DETALLE DE EQUIPO
+8. MÓDULO: BITÁCORA TI
+9. MÓDULO: MANUALES TI / WIKI
+10. MÓDULO: SERVICIOS Y CONTRASEÑAS
+11. MÓDULO: RESPALDO DE DATOS
+12. MÓDULO: REPORTES
+13. VALIDACIÓN DE SEGURIDAD
+14. PRUEBAS DE INTEGRACIÓN
+15. CHECKLIST FINAL
+
+================================================================================
+  1. PREPARACIÓN INICIAL
+================================================================================
+
+PASO 1: Verificar el Sistema
+-----------------------------
+1. Ejecutar: verificar-sistema.bat
+2. Verificar que todos los checks estén en ✅
+3. Si hay errores ⚠️, corregirlos antes de continuar
+
+PASO 2: Iniciar MongoDB
+-----------------------
+Opción A - MongoDB Local:
+  Windows Service: net start MongoDB
+  Manual: mongod --dbpath "C:\data\db"
+
+Opción B - MongoDB Atlas:
+  Asegurarte que el connection string en backend/.env sea correcto
+
+PASO 3: Iniciar el Sistema
+--------------------------
+1. Ejecutar: iniciar-sistema-completo.bat
+2. Esperar que aparezcan 2 ventanas:
+   - Ventana 1 (Backend): Debe mostrar "🚀 Servidor iniciado correctamente"
+   - Ventana 2 (Frontend): Debe mostrar "VITE ... ready in ... ms"
+
+3. Verificar URLs:
+   Backend: http://localhost:5000
+   Frontend: http://localhost:3000
+
+PASO 4: Abrir el Navegador
+--------------------------
+1. Abrir Chrome/Edge/Firefox
+2. Ir a: http://localhost:3000
+3. Abrir DevTools (F12) para ver la consola
+
+✅ VALIDACIÓN:
+- El navegador carga sin errores 404
+- La consola no muestra errores críticos en rojo
+- El sistema muestra la pantalla de Splash
+
+================================================================================
+  2. PANTALLA DE INICIO (SPLASH)
+================================================================================
+
+DESCRIPCIÓN:
+Primera pantalla que se muestra al cargar el sistema. Es una pantalla de
+bienvenida con animación que aparece durante 2 segundos.
+
+QUÉ DEBERÍAS VER:
+-----------------
+- Logo o ícono del sistema
+- Texto: "Mantenimiento Preventivo IT"
+- Animación de carga o transición
+- Fondo con gradiente
+
+QUÉ HACE:
+---------
+- Muestra el splash durante 2 segundos
+- Automáticamente redirige a la pantalla de Introducción
+- No hay botones, es totalmente automática
+
+✅ VALIDACIÓN:
+- La pantalla aparece al cargar
+- Después de ~2 segundos, automáticamente cambia a Introducción
+- No hay errores en consola
+
+⚠️ SI ALGO FALLA:
+- Si se queda pegada: Refrescar el navegador (F5)
+- Si no aparece: Verificar que index.html y index.tsx estén correctos
+
+================================================================================
+  3. PANTALLA DE INTRODUCCIÓN
+================================================================================
+
+DESCRIPCIÓN:
+Pantalla informativa que explica qué es el sistema y para qué sirve.
+
+QUÉ DEBERÍAS VER:
+-----------------
+- Título: "Sistema de Gestión de Mantenimiento Preventivo IT"
+- Descripción del sistema
+- Características principales listadas
+- BOTÓN: "Comenzar" o "Iniciar Sesión"
+
+BOTONES Y QUÉ HACEN:
+-------------------
+┌─────────────────────────────────────────────────────────────┐
+│ [Comenzar] o [Iniciar Sesión]                              │
+│ ¿Qué hace?: Navega a la pantalla de Login                  │
+│ ¿Cómo funciona?: Click → Redirige a /login                 │
+└─────────────────────────────────────────────────────────────┘
+
+✅ VALIDACIÓN:
+- La pantalla se ve completa y sin errores de diseño
+- El texto es legible
+- El botón "Comenzar" está visible y funciona
+- Al hacer click, navega a la pantalla de Login
+
+PRUEBAS:
+--------
+1. Leer toda la información mostrada
+2. Click en "Comenzar"
+3. Verificar que te lleve a Login
+
+⚠️ SI ALGO FALLA:
+- Si el botón no funciona: Revisar consola del navegador
+- Si no se ve bien: Verificar que Tailwind CSS cargue correctamente
+
+================================================================================
+  4. PANTALLA DE LOGIN
+================================================================================
+
+DESCRIPCIÓN:
+Pantalla de autenticación donde los usuarios ingresan sus credenciales.
+
+QUÉ DEBERÍAS VER:
+-----------------
+- Título: "Iniciar Sesión" o "Mantenimiento Preventivo IT"
+- Campo de texto: "Usuario"
+- Campo de contraseña: "Contraseña"
+- BOTÓN: "Iniciar Sesión"
+- Mensaje de error (solo si login falla)
+
+CAMPOS DEL FORMULARIO:
+---------------------
+┌─────────────────────────────────────────────────────────────┐
+│ [Usuario]                                                   │
+│ ¿Qué es?: Nombre de usuario para login                     │
+│ ¿Qué acepta?: Texto alfanumérico                           │
+│ ¿Validación?: Requerido, no puede estar vacío             │
+│ Ejemplo: "soporteti"                                        │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [Contraseña]                                                │
+│ ¿Qué es?: Contraseña del usuario                           │
+│ ¿Qué acepta?: Texto (oculto con •••••)                    │
+│ ¿Validación?: Requerido, no puede estar vacío             │
+│ Ejemplo: "admin2025"                                        │
+└─────────────────────────────────────────────────────────────┘
+
+BOTONES Y QUÉ HACEN:
+-------------------
+┌─────────────────────────────────────────────────────────────┐
+│ [Iniciar Sesión]                                            │
+│ ¿Qué hace?: Envía credenciales al backend para autenticar  │
+│ ¿Cómo funciona?:                                            │
+│   1. Valida que los campos no estén vacíos                  │
+│   2. Envía POST a /api/auth/login                           │
+│   3. Si es correcto: Guarda token y redirige a Dashboard    │
+│   4. Si es incorrecto: Muestra mensaje de error             │
+└─────────────────────────────────────────────────────────────┘
+
+CREDENCIALES POR DEFECTO:
+-------------------------
+Usuario: soporteti
+Contraseña: admin2025
+Rol: admin
+
+✅ VALIDACIÓN - CASO EXITOSO:
+1. Escribir: soporteti
+2. Escribir: admin2025
+3. Click en "Iniciar Sesión"
+4. Debe mostrar carga/loading
+5. Debe redirigir al Dashboard
+6. NO debe mostrar errores
+
+✅ VALIDACIÓN - CREDENCIALES INCORRECTAS:
+1. Escribir usuario incorrecto: "usuarioerroneo"
+2. Escribir contraseña: "12345"
+3. Click en "Iniciar Sesión"
+4. DEBE mostrar mensaje: "Credenciales inválidas"
+5. NO debe redirigir
+6. Los campos deben permanecer
+
+✅ VALIDACIÓN - CAMPOS VACÍOS:
+1. Dejar campos vacíos
+2. Click en "Iniciar Sesión"
+3. DEBE mostrar validación de campos requeridos
+4. NO debe enviar request al backend
+
+VERIFICAR EN CONSOLA DEL NAVEGADOR:
+-----------------------------------
+Al hacer login exitoso, deberías ver en DevTools (F12):
+- POST http://localhost:5000/api/auth/login → Status 200
+- localStorage debe tener 'mp_auth_session' con el token
+
+VERIFICAR EN BACKEND:
+--------------------
+En la ventana del backend deberías ver:
+- Log del request POST /api/auth/login
+- Status 200 si fue exitoso
+- Status 401 si las credenciales son incorrectas
+
+⚠️ SI ALGO FALLA:
+- Error "Network Error": Backend no está corriendo
+- Error 401: Credenciales incorrectas
+- No redirige: Revisar consola del navegador
+
+================================================================================
+  5. DASHBOARD (Panel Principal)
+================================================================================
+
+DESCRIPCIÓN:
+Pantalla principal del sistema que muestra estadísticas y acceso rápido a
+todos los módulos. Es la primera pantalla después del login.
+
+QUÉ DEBERÍAS VER:
+-----------------
+- Barra superior con:
+  * Logo del sistema
+  * Título "Mantenimiento Preventivo IT"
+  * Nombre del usuario logueado
+  * Botón "Cerrar Sesión"
+
+- Menú lateral (Sidebar) con iconos y nombres:
+  * 📊 Dashboard
+  * 💻 Inventario
+  * 📝 Bitácora TI
+  * 📚 Manuales TI
+  * 🔑 Servicios y Contraseñas
+  * 💾 Respaldo de Datos
+  * 📈 Reportes
+
+- Área principal con tarjetas de estadísticas:
+  * Total de Equipos
+  * Mantenimientos Pendientes
+  * Equipos en Riesgo
+  * Última Actividad
+
+- Gráficos:
+  * Gráfico de equipos por área
+  * Gráfico de estado de equipos
+  * Línea de tiempo de mantenimientos
+
+ELEMENTOS DEL MENÚ LATERAL:
+--------------------------
+┌─────────────────────────────────────────────────────────────┐
+│ [📊 Dashboard]                                              │
+│ ¿Qué hace?: Muestra la vista del Dashboard (actual)        │
+│ ¿Cómo funciona?: Click → Navega a /dashboard               │
+│ Estado visual: Resaltado cuando está activo                │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [💻 Inventario]                                             │
+│ ¿Qué hace?: Abre el módulo de Inventario de Equipos        │
+│ ¿Cómo funciona?: Click → Navega a /inventory               │
+│ ¿Qué verás?: Lista de todos los equipos registrados        │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [📝 Bitácora TI]                                            │
+│ ¿Qué hace?: Abre el módulo de Bitácora diaria              │
+│ ¿Cómo funciona?: Click → Navega a /bitacora                │
+│ ¿Qué verás?: Registro diario de actividades IT             │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [📚 Manuales TI]                                            │
+│ ¿Qué hace?: Abre la base de conocimiento / Wiki            │
+│ ¿Cómo funciona?: Click → Navega a /manuales                │
+│ ¿Qué verás?: Documentación y manuales técnicos             │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [🔑 Servicios y Contraseñas]                                │
+│ ¿Qué hace?: Abre gestor de credenciales corporativas       │
+│ ¿Cómo funciona?: Click → Navega a /credenciales            │
+│ ¿Qué verás?: Lista de credenciales de servicios            │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [💾 Respaldo de Datos]                                      │
+│ ¿Qué hace?: Abre módulo de backup/restore                  │
+│ ¿Cómo funciona?: Click → Navega a /respaldo                │
+│ ¿Qué verás?: Opciones de exportar/importar datos           │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [📈 Reportes]                                               │
+│ ¿Qué hace?: Abre módulo de reportes ejecutivos             │
+│ ¿Cómo funciona?: Click → Navega a /reportes                │
+│ ¿Qué verás?: Reportes e informes del sistema               │
+└─────────────────────────────────────────────────────────────┘
+
+BOTÓN DE CERRAR SESIÓN:
+-----------------------
+┌─────────────────────────────────────────────────────────────┐
+│ [Cerrar Sesión] (Esquina superior derecha)                 │
+│ ¿Qué hace?: Cierra la sesión del usuario                   │
+│ ¿Cómo funciona?:                                            │
+│   1. Elimina el token de localStorage                       │
+│   2. Redirige a la pantalla de Login                        │
+│   3. Usuario debe volver a autenticarse                     │
+└─────────────────────────────────────────────────────────────┘
+
+TARJETAS DE ESTADÍSTICAS:
+------------------------
+Cada tarjeta muestra:
+- Ícono representativo
+- Número grande con la estadística
+- Descripción breve
+- Posible cambio o tendencia
+
+Ejemplos:
+┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
+│ 💻              │  │ 📝              │  │ ⚠️               │
+│ 45              │  │ 12              │  │ 8                │
+│ Total Equipos   │  │ Mantenimientos  │  │ Equipos Riesgo   │
+└──────────────────┘  └──────────────────┘  └──────────────────┘
+
+GRÁFICOS:
+---------
+1. Gráfico de Barras - Equipos por Área
+   - Muestra cuántos equipos hay en cada área/departamento
+   - Usa la librería Recharts
+   - Interactivo: Hover muestra detalles
+
+2. Gráfico de Pastel - Estado de Equipos
+   - OK (Verde)
+   - Riesgo (Amarillo)
+   - Crítico (Rojo)
+
+3. Gráfico de Líneas - Mantenimientos en el Tiempo
+   - Eje X: Fechas
+   - Eje Y: Cantidad de mantenimientos
+
+✅ VALIDACIÓN DEL DASHBOARD:
+1. Verificar que todas las estadísticas muestren números
+2. Click en cada opción del menú lateral
+3. Verificar que cada opción navega correctamente
+4. Verificar que los gráficos se rendericen
+5. Hacer hover sobre los gráficos (debe mostrar tooltips)
+6. Click en "Cerrar Sesión" → Debe volver al Login
+
+PRUEBA COMPLETA DEL MENÚ:
+-------------------------
+1. Click en "Inventario" → Debe cargar lista de equipos
+2. Click en "Dashboard" → Debe volver al Dashboard
+3. Click en "Bitácora TI" → Debe cargar bitácora
+4. Click en "Dashboard" → Debe volver al Dashboard
+5. Repetir con cada opción del menú
+
+⚠️ SI ALGO FALLA:
+- Estadísticas en 0: Base de datos vacía (normal en primera instalación)
+- Gráficos no aparecen: Verificar que Recharts cargue correctamente
+- Menú no funciona: Revisar consola del navegador
+
+================================================================================
+  6. MÓDULO: INVENTARIO DE EQUIPOS
+================================================================================
+
+DESCRIPCIÓN:
+Módulo principal para gestionar el inventario de equipos IT (PCs, laptops,
+monitores, teclados, mouses, smartphones, etc.)
+
+RUTA: /inventory
+
+QUÉ DEBERÍAS VER:
+-----------------
+- Título: "Inventario de Equipos"
+- Barra de búsqueda
+- Filtros (Área, Estado, Tipo)
+- BOTÓN: "+ Nuevo Equipo"
+- Tabla/Tarjetas con lista de equipos
+- Cada equipo muestra:
+  * Código del equipo
+  * Hostname
+  * Usuario asignado
+  * Área
+  * Tipo (PC/Laptop/etc)
+  * Estado (OK/Riesgo/Crítico)
+  * Botones de acción (Ver/Editar/Eliminar)
+
+BARRA DE BÚSQUEDA:
+-----------------
+┌─────────────────────────────────────────────────────────────┐
+│ [🔍 Buscar equipo...]                                       │
+│ ¿Qué hace?: Filtra equipos en tiempo real                  │
+│ ¿Qué busca?: Código, hostname, usuario, área               │
+│ ¿Cómo funciona?: Escribe → Filtra automáticamente          │
+│ Ejemplo: Escribir "PC-001" → Muestra solo ese equipo       │
+└─────────────────────────────────────────────────────────────┘
+
+FILTROS:
+-------
+┌─────────────────────────────────────────────────────────────┐
+│ [Filtro: Área] (Dropdown)                                   │
+│ ¿Qué hace?: Filtra equipos por área/departamento           │
+│ Opciones: Todas, Administración, IT, Ventas, etc.          │
+│ ¿Cómo funciona?: Seleccionar área → Muestra solo esos      │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [Filtro: Estado] (Dropdown)                                 │
+│ ¿Qué hace?: Filtra equipos por estado                      │
+│ Opciones: Todos, OK, Riesgo, Crítico                       │
+│ ¿Cómo funciona?: Seleccionar → Filtra por ese estado       │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [Filtro: Tipo] (Dropdown)                                   │
+│ ¿Qué hace?: Filtra equipos por tipo                        │
+│ Opciones: Todos, PC, Laptop, Monitor, Mouse, Keyboard, etc.│
+│ ¿Cómo funciona?: Seleccionar → Muestra solo ese tipo       │
+└─────────────────────────────────────────────────────────────┘
+
+BOTÓN NUEVO EQUIPO:
+------------------
+┌─────────────────────────────────────────────────────────────┐
+│ [+ Nuevo Equipo]                                            │
+│ ¿Qué hace?: Abre modal/formulario para agregar equipo      │
+│ ¿Cómo funciona?:                                            │
+│   1. Click → Abre formulario emergente                      │
+│   2. Llenar datos del equipo                                │
+│   3. Click "Guardar" → Crea equipo en BD                    │
+│   4. Cierra modal y muestra equipo en lista                 │
+└─────────────────────────────────────────────────────────────┘
+
+FORMULARIO DE NUEVO EQUIPO:
+---------------------------
+Campos requeridos (*):
+- Tipo de Equipo* (PC, Laptop, Monitor, etc.)
+- Código* (Auto-generado o manual)
+- Hostname* (Nombre del equipo)
+- Usuario* (Persona asignada)
+- Área* (Departamento)
+- Fecha de Compra*
+- Próximo Mantenimiento*
+
+Campos opcionales:
+- Marca
+- Modelo
+- Número de Serie
+- Sistema Operativo
+- Componentes (CPU, RAM, Disco, etc.)
+- Foto del equipo
+- Observaciones
+
+Botones del formulario:
+┌──────────────────┐  ┌──────────────────┐
+│ [Guardar]        │  │ [Cancelar]       │
+│ Crea el equipo   │  │ Cierra modal     │
+└──────────────────┘  └──────────────────┘
+
+TARJETA DE EQUIPO EN LA LISTA:
+-----------------------------
+Cada equipo se muestra como:
+
+┌──────────────────────────────────────────────────────────┐
+│ 💻 PC-001                                    [OK]         │
+│ ─────────────────────────────────────────────────────    │
+│ Hostname: DESKTOP-ADMIN                                  │
+│ Usuario: Juan Pérez                                      │
+│ Área: Administración                                     │
+│                                                           │
+│ [👁️ Ver] [✏️ Editar] [🗑️ Eliminar]                      │
+└──────────────────────────────────────────────────────────┘
+
+BOTONES DE ACCIÓN EN CADA EQUIPO:
+---------------------------------
+┌─────────────────────────────────────────────────────────────┐
+│ [👁️ Ver Detalles]                                          │
+│ ¿Qué hace?: Abre vista detallada del equipo                │
+│ ¿Cómo funciona?: Click → Navega a /equipment/:id           │
+│ ¿Qué verás?: Toda la info del equipo + historial           │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [✏️ Editar]                                                 │
+│ ¿Qué hace?: Abre formulario para editar el equipo          │
+│ ¿Cómo funciona?:                                            │
+│   1. Click → Abre modal con datos actuales                  │
+│   2. Modificar campos                                        │
+│   3. Click "Guardar" → Actualiza en BD                      │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [🗑️ Eliminar]                                               │
+│ ¿Qué hace?: Elimina el equipo del sistema                  │
+│ ¿Cómo funciona?:                                            │
+│   1. Click → Muestra confirmación                           │
+│   2. Confirmar → Elimina de BD                              │
+│   3. Desaparece de la lista                                 │
+│ ⚠️ CUIDADO: Acción irreversible                            │
+└─────────────────────────────────────────────────────────────┘
+
+✅ VALIDACIÓN COMPLETA DEL INVENTARIO:
+
+PRUEBA 1: Crear Nuevo Equipo
+----------------------------
+1. Click en "+ Nuevo Equipo"
+2. Debe abrir modal/formulario
+3. Seleccionar Tipo: "PC"
+4. El código debe auto-generarse (ej: PC-001)
+5. Llenar campos:
+   - Hostname: "TEST-PC-001"
+   - Usuario: "Usuario Prueba"
+   - Área: "IT"
+   - Fecha Compra: Hoy
+   - Próximo Mantenimiento: En 3 meses
+6. Click "Guardar"
+7. Debe cerrar el modal
+8. Debe aparecer el nuevo equipo en la lista
+9. Verificar en backend: POST /api/equipments → Status 201
+
+PRUEBA 2: Buscar Equipo
+-----------------------
+1. En la barra de búsqueda escribir: "TEST"
+2. Debe filtrar y mostrar solo equipos con "TEST"
+3. Borrar búsqueda
+4. Debe mostrar todos los equipos de nuevo
+
+PRUEBA 3: Filtrar por Área
+--------------------------
+1. Click en filtro "Área"
+2. Seleccionar "IT"
+3. Debe mostrar solo equipos del área IT
+4. Seleccionar "Todas"
+5. Debe mostrar todos los equipos
+
+PRUEBA 4: Filtrar por Estado
+----------------------------
+1. Click en filtro "Estado"
+2. Seleccionar "OK"
+3. Debe mostrar solo equipos con estado OK
+4. Seleccionar "Todos"
+
+PRUEBA 5: Editar Equipo
+-----------------------
+1. Click en "✏️ Editar" de un equipo
+2. Debe abrir modal con datos actuales
+3. Cambiar el hostname a "TEST-PC-EDITADO"
+4. Click "Guardar"
+5. Debe actualizar y mostrar nuevo nombre
+6. Verificar en backend: PUT /api/equipments/:id → Status 200
+
+PRUEBA 6: Ver Detalles
+----------------------
+1. Click en "👁️ Ver Detalles"
+2. Debe navegar a página de detalle
+3. Ver siguiente sección (DETALLE DE EQUIPO)
+
+PRUEBA 7: Eliminar Equipo
+-------------------------
+1. Click en "🗑️ Eliminar" de un equipo
+2. Debe mostrar modal de confirmación
+3. Click "Cancelar" → No debe eliminar
+4. Click "🗑️ Eliminar" de nuevo
+5. Click "Confirmar" → Debe eliminar
+6. Equipo desaparece de la lista
+7. Verificar en backend: DELETE /api/equipments/:id → Status 200
+
+⚠️ SI ALGO FALLA:
+- No carga equipos: Verificar conexión al backend
+- Filtros no funcionan: Verificar consola del navegador
+- No guarda: Revisar validaciones de campos requeridos
+
+================================================================================
+  7. MÓDULO: DETALLE DE EQUIPO
+================================================================================
+
+DESCRIPCIÓN:
+Vista detallada de un equipo específico, mostrando toda su información,
+componentes, historial de mantenimientos y periféricos asignados.
+
+RUTA: /equipment/:id
+
+CÓMO LLEGAR:
+------------
+1. Ir a Inventario
+2. Click en "👁️ Ver Detalles" de cualquier equipo
+
+QUÉ DEBERÍAS VER:
+-----------------
+- Botón "← Volver" (regresa al inventario)
+- Foto del equipo (si tiene)
+- Información general del equipo
+- Componentes técnicos (CPU, RAM, Disco, etc.)
+- Riesgos identificados
+- Periféricos asignados (Mouse, Teclado, Monitor)
+- Historial de mantenimientos
+- BOTÓN: "Editar Equipo"
+- BOTÓN: "Registrar Mantenimiento"
+
+SECCIONES DE LA VISTA:
+
+1. INFORMACIÓN GENERAL
+---------------------
+Muestra:
+- Código del equipo
+- Hostname
+- Usuario asignado
+- Área
+- Marca y Modelo
+- Número de Serie
+- Sistema Operativo
+- Fecha de Compra
+- Estado actual (OK/Riesgo/Crítico)
+- Último mantenimiento
+- Próximo mantenimiento
+- Recomendación
+
+2. COMPONENTES TÉCNICOS
+----------------------
+Si el equipo es PC/Laptop/AIO, muestra:
+- CPU: Modelo y Año
+- RAM: Modelo y Año
+- Disco: Modelo y Año (SSD/HDD)
+- Motherboard: Modelo y Año
+- PSU: Fuente de poder (opcional)
+- GPU: Tarjeta gráfica (opcional)
+- Monitor: Pantalla (si es AIO)
+
+3. RIESGOS IDENTIFICADOS
+-----------------------
+Lista de checkboxes mostrando:
+- ⬜ Lentitud del sistema
+- ⬜ Reinicios inesperados
+- ⬜ Salud del disco
+- ⬜ Temperatura alta
+- ⬜ Problemas de pantalla
+- ⬜ Problemas de red
+- ⬜ Problemas de software
+
+✅ = Tiene ese riesgo
+⬜ = No tiene ese riesgo
+
+4. PERIFÉRICOS ASIGNADOS
+------------------------
+Muestra qué periféricos están asignados a este equipo:
+
+┌──────────────────────────────────────────────────────────┐
+│ 🖱️ Mouse:                                                │
+│   Código: MOUSE-001                                      │
+│   Asignado: 2024-01-15                                   │
+│   [❌ Desasignar]                                        │
+└──────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────┐
+│ ⌨️ Teclado:                                              │
+│   Código: KB-001                                         │
+│   Asignado: 2024-01-15                                   │
+│   [❌ Desasignar]                                        │
+└──────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────┐
+│ 🖥️ Monitor:                                              │
+│   Código: MON-001                                        │
+│   Asignado: 2024-01-15                                   │
+│   [❌ Desasignar]                                        │
+└──────────────────────────────────────────────────────────┘
+
+Si no hay periférico asignado:
+[+ Asignar Mouse] [+ Asignar Teclado] [+ Asignar Monitor]
+
+5. HISTORIAL DE MANTENIMIENTOS
+-----------------------------
+Lista cronológica de todos los mantenimientos realizados:
+
+┌──────────────────────────────────────────────────────────┐
+│ 🔧 Mantenimiento Preventivo - 2024-01-10                 │
+│ ─────────────────────────────────────────────────────    │
+│ Técnico: Juan López                                      │
+│ Acciones: Limpieza interna, actualización de drivers    │
+│ Problemas: Acumulación de polvo                          │
+│ Solución: Limpieza completa                              │
+│ [Ver Detalles]                                           │
+└──────────────────────────────────────────────────────────┘
+
+BOTONES PRINCIPALES:
+-------------------
+┌─────────────────────────────────────────────────────────────┐
+│ [← Volver]                                                  │
+│ ¿Qué hace?: Regresa a la lista de inventario               │
+│ ¿Cómo funciona?: Click → Navega a /inventory               │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [✏️ Editar Equipo]                                          │
+│ ¿Qué hace?: Abre formulario para editar el equipo          │
+│ ¿Cómo funciona?: Igual que editar en inventario            │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [🔧 Registrar Mantenimiento]                                │
+│ ¿Qué hace?: Abre formulario para nuevo mantenimiento       │
+│ ¿Cómo funciona?:                                            │
+│   1. Click → Abre modal de mantenimiento                    │
+│   2. Llenar tipo, acciones, problemas, soluciones           │
+│   3. Subir fotos (opcional)                                 │
+│   4. Click "Guardar" → Registra en BD                       │
+│   5. Aparece en historial                                   │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [+ Asignar Mouse/Teclado/Monitor]                           │
+│ ¿Qué hace?: Asigna un periférico a este equipo             │
+│ ¿Cómo funciona?:                                            │
+│   1. Click → Abre modal con lista de periféricos libres     │
+│   2. Seleccionar periférico                                  │
+│   3. Click "Asignar" → Actualiza en BD                      │
+│   4. Periférico aparece como asignado                        │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [❌ Desasignar]                                             │
+│ ¿Qué hace?: Quita el periférico de este equipo             │
+│ ¿Cómo funciona?:                                            │
+│   1. Click → Confirma desasignación                          │
+│   2. Periférico vuelve a estado "Libre"                     │
+│   3. Desaparece de la lista de asignados                     │
+└─────────────────────────────────────────────────────────────┘
+
+✅ VALIDACIÓN COMPLETA:
+
+PRUEBA 1: Ver Toda la Información
+---------------------------------
+1. Verificar que todos los datos se muestren correctamente
+2. Verificar que componentes aparezcan (si aplica)
+3. Verificar que riesgos se muestren
+4. Verificar que periféricos asignados aparezcan
+
+PRUEBA 2: Registrar Mantenimiento
+---------------------------------
+1. Click en "🔧 Registrar Mantenimiento"
+2. Debe abrir modal/formulario
+3. Llenar campos:
+   - Tipo: "Preventivo"
+   - Fecha: Hoy
+   - Técnico: "Tu nombre"
+   - Acciones: "Limpieza y actualización"
+   - Problemas: "Lentitud"
+   - Soluciones: "Limpieza completa"
+4. Click "Guardar"
+5. Debe aparecer en el historial
+6. Verificar en backend: POST /api/maintenances → Status 201
+
+PRUEBA 3: Asignar Periférico
+----------------------------
+1. Click en "+ Asignar Mouse"
+2. Debe abrir lista de mouses disponibles
+3. Seleccionar un mouse
+4. Click "Asignar"
+5. Mouse debe aparecer en la lista de asignados
+6. El mouse debe cambiar su estado en inventario
+
+PRUEBA 4: Desasignar Periférico
+-------------------------------
+1. Click en "❌ Desasignar" de un periférico
+2. Confirmar la acción
+3. Periférico debe desaparecer de la lista
+4. Periférico debe volver a estado "Libre"
+
+PRUEBA 5: Navegación
+-------------------
+1. Click en "← Volver"
+2. Debe regresar al inventario
+3. La lista debe mantener los filtros previos
+
+⚠️ SI ALGO FALLA:
+- No carga datos: Verificar ID del equipo en URL
+- Historial vacío: Es normal si no hay mantenimientos
+- Periféricos no aparecen: Verificar que existan en BD
+
+================================================================================
+  8. MÓDULO: BITÁCORA TI
+================================================================================
+
+DESCRIPCIÓN:
+Registro diario de todas las actividades del departamento IT. Permite llevar
+un control detallado de solicitudes, incidentes y tareas realizadas cada día.
+
+RUTA: /bitacora
+
+QUÉ DEBERÍAS VER:
+-----------------
+- Título: "Bitácora TI"
+- Selector de fecha (Calendar)
+- Estado del día (OK, RISK, INCIDENT, SUNDAY)
+- Resumen del día
+- Lista de solicitudes/actividades del día
+- BOTÓN: "+ Nueva Solicitud"
+- BOTÓN: "Guardar Bitácora"
+
+SELECTOR DE FECHA:
+-----------------
+┌─────────────────────────────────────────────────────────────┐
+│ [📅 Fecha: 03 de Enero 2026]                                │
+│ ¿Qué hace?: Cambia la fecha de la bitácora                 │
+│ ¿Cómo funciona?:                                            │
+│   1. Click → Abre calendario                                │
+│   2. Seleccionar fecha                                       │
+│   3. Carga/Crea bitácora de esa fecha                       │
+│ ¿Qué pasa?: Cada día tiene su propia bitácora              │
+└─────────────────────────────────────────────────────────────┘
+
+ESTADO DEL DÍA:
+--------------
+4 opciones para clasificar el día:
+
+┌─────────────────────────────────────────────────────────────┐
+│ [OK] - Día Normal                                           │
+│ ¿Cuándo usar?: Todo funcionó correctamente                 │
+│ Color: Verde                                                │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [RISK] - Día con Riesgos                                    │
+│ ¿Cuándo usar?: Problemas menores o alertas                 │
+│ Color: Amarillo                                             │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [INCIDENT] - Día con Incidentes                             │
+│ ¿Cuándo usar?: Problemas graves o urgentes                 │
+│ Color: Rojo                                                 │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [SUNDAY] - Fin de Semana / Día Libre                        │
+│ ¿Cuándo usar?: No hubo actividad laboral                   │
+│ Color: Gris                                                 │
+└─────────────────────────────────────────────────────────────┘
+
+RESUMEN DEL DÍA:
+---------------
+┌─────────────────────────────────────────────────────────────┐
+│ [Resumen del día]                                           │
+│ ¿Qué es?: Campo de texto para descripción general          │
+│ ¿Qué escribir?: Resumen de las actividades del día         │
+│ Ejemplo: "Se atendieron 5 solicitudes de soporte.          │
+│           Se realizó mantenimiento a 3 equipos."            │
+└─────────────────────────────────────────────────────────────┘
+
+LISTA DE SOLICITUDES/ACTIVIDADES:
+---------------------------------
+Cada entrada muestra:
+
+┌──────────────────────────────────────────────────────────┐
+│ 🎫 #001 - Solicitud de Soporte                   [ABIERTA]│
+│ ─────────────────────────────────────────────────────    │
+│ 👤 Usuario: María García                                 │
+│ 📍 Área: Ventas                                          │
+│ 🏷️ Categoría: Soporte Técnico                           │
+│ ⭐ Prioridad: Alta                                        │
+│ 📝 Descripción: Computadora no enciende                  │
+│                                                           │
+│ 📅 Inicio: 09:00 AM                                      │
+│ 📅 Fin: 10:30 AM                                         │
+│ ⏱️ Tiempo: 1h 30min                                      │
+│                                                           │
+│ ✅ Solución: Se reemplazó cable de poder defectuoso     │
+│                                                           │
+│ [✏️ Editar] [✅ Completar] [🗑️ Eliminar]               │
+└──────────────────────────────────────────────────────────┘
+
+BOTÓN NUEVA SOLICITUD:
+---------------------
+┌─────────────────────────────────────────────────────────────┐
+│ [+ Nueva Solicitud]                                         │
+│ ¿Qué hace?: Abre formulario para registrar nueva actividad │
+│ ¿Cómo funciona?:                                            │
+│   1. Click → Abre modal de nueva solicitud                  │
+│   2. Llenar todos los campos                                │
+│   3. Click "Guardar" → Agrega a la lista                    │
+└─────────────────────────────────────────────────────────────┘
+
+FORMULARIO DE NUEVA SOLICITUD:
+------------------------------
+Campos del formulario:
+
+- Título* (Breve descripción)
+- Usuario/Solicitante*
+- Área*
+- Categoría* (Soporte, Mantenimiento, Redes, Instalación, etc.)
+- Prioridad* (Baja, Media, Alta, Crítica)
+- Descripción del problema*
+- Hora de inicio*
+- Hora de fin* (puede dejarse vacía si está en proceso)
+- Solución aplicada
+- Observaciones
+
+Estados:
+- ABIERTA: Recién creada, no atendida
+- EN PROCESO: Se está trabajando en ella
+- COMPLETADA: Ya fue resuelta
+- CANCELADA: No se completó o no procedió
+
+BOTONES DE ACCIÓN EN CADA SOLICITUD:
+------------------------------------
+┌─────────────────────────────────────────────────────────────┐
+│ [✏️ Editar]                                                 │
+│ ¿Qué hace?: Permite modificar la solicitud                 │
+│ ¿Cómo funciona?: Abre modal con datos, modificar, guardar  │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [✅ Completar]                                              │
+│ ¿Qué hace?: Marca la solicitud como completada             │
+│ ¿Cómo funciona?:                                            │
+│   1. Click → Pide confirmar solución                         │
+│   2. Agregar solución si no la tiene                         │
+│   3. Marca como COMPLETADA                                   │
+│   4. Calcula tiempo total                                    │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [🗑️ Eliminar]                                               │
+│ ¿Qué hace?: Elimina la solicitud de la bitácora            │
+│ ¿Cómo funciona?: Confirmar → Elimina                        │
+│ ⚠️ Solo eliminar si fue error de captura                   │
+└─────────────────────────────────────────────────────────────┘
+
+BOTÓN GUARDAR BITÁCORA:
+----------------------
+┌─────────────────────────────────────────────────────────────┐
+│ [💾 Guardar Bitácora]                                       │
+│ ¿Qué hace?: Guarda toda la bitácora del día en BD          │
+│ ¿Cómo funciona?:                                            │
+│   1. Click → Valida datos                                    │
+│   2. Guarda estado del día + resumen + solicitudes          │
+│   3. Muestra confirmación                                    │
+│ ⚠️ Siempre guardar antes de cambiar de fecha               │
+└─────────────────────────────────────────────────────────────┘
+
+ESTADÍSTICAS DEL DÍA:
+--------------------
+Al final de la página, muestra resumen:
+- Total de solicitudes: X
+- Completadas: X
+- En proceso: X
+- Tiempo total invertido: X horas
+- Prioridades atendidas (Alta: X, Media: X, Baja: X)
+
+✅ VALIDACIÓN COMPLETA:
+
+PRUEBA 1: Crear Nueva Bitácora del Día
+--------------------------------------
+1. Verificar que la fecha sea hoy
+2. Seleccionar estado del día: "OK"
+3. Escribir resumen: "Día normal de operaciones"
+4. Click "+ Nueva Solicitud"
+5. Llenar formulario:
+   - Título: "Problema con impresora"
+   - Usuario: "Juan Pérez"
+   - Área: "Administración"
+   - Categoría: "Soporte Técnico"
+   - Prioridad: "Media"
+   - Descripción: "Impresora no imprime"
+   - Hora inicio: 09:00
+   - Hora fin: 09:30
+   - Solución: "Reiniciar impresora y actualizar driver"
+6. Click "Guardar"
+7. Debe aparecer en la lista
+8. Click "💾 Guardar Bitácora"
+9. Debe confirmar guardado exitoso
+
+PRUEBA 2: Cambiar de Fecha
+--------------------------
+1. Click en selector de fecha
+2. Seleccionar ayer
+3. Si existe bitácora de ayer, debe cargarla
+4. Si no existe, debe mostrar bitácora vacía
+5. Crear una solicitud para ayer
+6. Guardar
+7. Volver a hoy
+8. Debe mostrar la bitácora de hoy (no la de ayer)
+
+PRUEBA 3: Completar Solicitud
+-----------------------------
+1. Crear una solicitud sin hora de fin
+2. Dejar estado "ABIERTA"
+3. Guardar bitácora
+4. Click en "✅ Completar" de esa solicitud
+5. Agregar solución si no la tiene
+6. Debe cambiar a "COMPLETADA"
+7. Debe calcular tiempo automáticamente
+
+PRUEBA 4: Editar Solicitud
+--------------------------
+1. Click en "✏️ Editar" de una solicitud
+2. Cambiar la prioridad de "Media" a "Alta"
+3. Guardar
+4. Debe reflejarse el cambio
+5. La solicitud debe mantener todo lo demás igual
+
+PRUEBA 5: Filtrar por Categoría
+-------------------------------
+1. Si hay filtros, seleccionar categoría
+2. Debe mostrar solo solicitudes de esa categoría
+3. Quitar filtro
+4. Debe mostrar todas
+
+PRUEBA 6: Estadísticas
+---------------------
+1. Crear varias solicitudes
+2. Marcar algunas como completadas
+3. Verificar que el contador de estadísticas se actualice
+4. Total de solicitudes debe ser correcto
+5. Completadas debe coincidir con las marcadas
+
+⚠️ SI ALGO FALLA:
+- No guarda: Verificar que todos los campos requeridos estén llenos
+- No calcula tiempo: Verificar formato de horas
+- No carga fecha anterior: Es normal si no existe bitácora de ese día
+
+================================================================================
+  9. MÓDULO: MANUALES TI / WIKI
+================================================================================
+
+DESCRIPCIÓN:
+Base de conocimiento interna donde se documenta procedimientos, manuales,
+guías y soluciones técnicas. Organizado en carpetas temáticas.
+
+RUTA: /manuales
+
+QUÉ DEBERÍAS VER:
+-----------------
+- Título: "Manuales y Documentación TI"
+- Lista de carpetas (Folders)
+- Barra de búsqueda
+- BOTÓN: "+ Nueva Carpeta"
+- BOTÓN: "+ Nuevo Manual"
+- Lista de manuales con vista previa
+
+ORGANIZACIÓN:
+------------
+El sistema se organiza en carpetas como:
+- 📁 Procedimientos
+- 📁 Guías de Usuario
+- 📁 Soluciones Técnicas
+- 📁 Configuraciones
+- 📁 Documentación de Red
+- 📁 Políticas IT
+
+Cada carpeta contiene manuales relacionados.
+
+LISTA DE CARPETAS:
+-----------------
+┌──────────────────────────────────────────────────────────┐
+│ 📁 Procedimientos                              (5)        │
+│ ─────────────────────────────────────────────────────    │
+│ Descripción: Procedimientos estándar del departamento    │
+│ [👁️ Ver] [✏️ Editar] [🗑️ Eliminar]                      │
+└──────────────────────────────────────────────────────────┘
+
+El número (5) indica cuántos manuales hay en esa carpeta.
+
+BOTÓN NUEVA CARPETA:
+-------------------
+┌─────────────────────────────────────────────────────────────┐
+│ [📁 + Nueva Carpeta]                                        │
+│ ¿Qué hace?: Crea una nueva carpeta para organizar manuales │
+│ ¿Cómo funciona?:                                            │
+│   1. Click → Abre modal                                      │
+│   2. Escribir nombre de carpeta                              │
+│   3. Escribir descripción (opcional)                         │
+│   4. Click "Crear" → Aparece en la lista                    │
+└─────────────────────────────────────────────────────────────┘
+
+BOTÓN NUEVO MANUAL:
+------------------
+┌─────────────────────────────────────────────────────────────┐
+│ [📄 + Nuevo Manual]                                         │
+│ ¿Qué hace?: Crea un nuevo manual/documento                 │
+│ ¿Cómo funciona?:                                            │
+│   1. Click → Abre editor de manual                          │
+│   2. Llenar campos del manual                                │
+│   3. Escribir contenido                                      │
+│   4. Click "Guardar" → Guarda en BD                         │
+└─────────────────────────────────────────────────────────────┘
+
+FORMULARIO DE NUEVO MANUAL:
+---------------------------
+Campos:
+
+┌─────────────────────────────────────────────────────────────┐
+│ Título*                                                     │
+│ Ejemplo: "Cómo configurar correo corporativo"              │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ Carpeta*                                                    │
+│ Seleccionar en qué carpeta guardar el manual               │
+│ Dropdown con todas las carpetas disponibles                │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ Tags (Etiquetas)                                            │
+│ Palabras clave separadas por comas                         │
+│ Ejemplo: correo, outlook, configuración                    │
+│ Útil para búsqueda                                          │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ Contenido* (Editor de texto rico)                          │
+│ ¿Qué permite?:                                              │
+│   - Texto con formato (negrita, cursiva, listas)            │
+│   - Títulos y subtítulos                                     │
+│   - Insertar imágenes                                        │
+│   - Código formateado                                        │
+│   - Enlaces                                                  │
+└─────────────────────────────────────────────────────────────┘
+
+BARRA DE HERRAMIENTAS DEL EDITOR:
+---------------------------------
+[B] - Negrita
+[I] - Cursiva
+[U] - Subrayado
+[🔗] - Insertar enlace
+[🖼️] - Insertar imagen
+[📋] - Insertar código
+[H1] [H2] [H3] - Títulos
+[•] [1.] - Listas
+
+INSERTAR IMÁGENES:
+-----------------
+┌─────────────────────────────────────────────────────────────┐
+│ [🖼️ Insertar Imagen]                                        │
+│ ¿Cómo funciona?:                                            │
+│   1. Click → Abre selector de archivos                       │
+│   2. Seleccionar imagen (JPG, PNG)                           │
+│   3. Imagen se convierte a Base64                            │
+│   4. Se inserta en el contenido                              │
+│ ⚠️ Recomendado: Imágenes pequeñas (<1MB)                   │
+└─────────────────────────────────────────────────────────────┘
+
+VISTA DE LISTA DE MANUALES:
+--------------------------
+Después de seleccionar una carpeta:
+
+┌──────────────────────────────────────────────────────────┐
+│ 📄 Cómo configurar correo corporativo                    │
+│ ─────────────────────────────────────────────────────    │
+│ 📁 Carpeta: Guías de Usuario                             │
+│ 🏷️ Tags: correo, outlook, configuración                 │
+│ 📅 Creado: 2024-01-15 por Juan López                     │
+│ 📅 Actualizado: 2024-01-20                               │
+│                                                           │
+│ Vista previa: Esta guía explica paso a paso cómo...      │
+│                                                           │
+│ [👁️ Ver] [✏️ Editar] [🗑️ Eliminar]                      │
+└──────────────────────────────────────────────────────────┘
+
+BOTONES DE ACCIÓN EN CADA MANUAL:
+---------------------------------
+┌─────────────────────────────────────────────────────────────┐
+│ [👁️ Ver Manual]                                            │
+│ ¿Qué hace?: Abre el manual en modo lectura                 │
+│ ¿Cómo funciona?:                                            │
+│   1. Click → Abre vista completa del manual                 │
+│   2. Muestra contenido formateado                            │
+│   3. Muestra imágenes embebidas                             │
+│   4. Permite imprimir                                        │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [✏️ Editar]                                                 │
+│ ¿Qué hace?: Permite modificar el manual                    │
+│ ¿Cómo funciona?:                                            │
+│   1. Click → Abre editor con contenido actual               │
+│   2. Modificar lo necesario                                  │
+│   3. Click "Guardar" → Actualiza en BD                      │
+│   4. Actualiza fecha de modificación                         │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [🗑️ Eliminar]                                               │
+│ ¿Qué hace?: Elimina el manual                              │
+│ ¿Cómo funciona?: Confirmar → Elimina permanentemente       │
+│ ⚠️ Acción irreversible                                     │
+└─────────────────────────────────────────────────────────────┘
+
+BÚSQUEDA DE MANUALES:
+--------------------
+┌─────────────────────────────────────────────────────────────┐
+│ [🔍 Buscar manuales...]                                     │
+│ ¿Qué busca?: Título, contenido, tags                       │
+│ ¿Cómo funciona?: Escribe → Filtra en tiempo real           │
+│ Ejemplo: Escribir "correo" → Muestra todos los manuales    │
+│          que mencionen correo                               │
+└─────────────────────────────────────────────────────────────┘
+
+FILTRO POR TAGS:
+---------------
+Si hay tags definidos, se muestran como chips clicables:
+
+[correo] [outlook] [configuración] [red] [windows]
+
+Click en un tag → Filtra manuales con ese tag
+
+✅ VALIDACIÓN COMPLETA:
+
+PRUEBA 1: Crear Nueva Carpeta
+-----------------------------
+1. Click en "📁 + Nueva Carpeta"
+2. Debe abrir modal
+3. Escribir nombre: "Pruebas"
+4. Escribir descripción: "Carpeta de prueba"
+5. Click "Crear"
+6. Debe aparecer en la lista de carpetas
+7. Contador debe mostrar (0)
+
+PRUEBA 2: Crear Nuevo Manual
+----------------------------
+1. Click en "📄 + Nuevo Manual"
+2. Debe abrir editor
+3. Llenar:
+   - Título: "Manual de Prueba"
+   - Carpeta: "Pruebas"
+   - Tags: "test, prueba"
+4. En el editor, escribir:
+   - Título grande: "Introducción"
+   - Párrafo de texto
+   - Lista con bullets
+5. Click "Guardar"
+6. Debe aparecer en la carpeta "Pruebas"
+7. Contador de carpeta debe mostrar (1)
+
+PRUEBA 3: Insertar Imagen en Manual
+-----------------------------------
+1. Editar el manual de prueba
+2. Click en botón de imagen 🖼️
+3. Seleccionar imagen del equipo
+4. Imagen debe aparecer en el editor
+5. Guardar
+6. Al ver el manual, la imagen debe mostrarse
+
+PRUEBA 4: Buscar Manual
+-----------------------
+1. En barra de búsqueda escribir: "prueba"
+2. Debe filtrar y mostrar solo manuales con "prueba"
+3. Borrar búsqueda
+4. Debe mostrar todos de nuevo
+
+PRUEBA 5: Filtrar por Tag
+-------------------------
+1. Click en tag "test"
+2. Debe mostrar solo manuales con ese tag
+3. Click en "Todos" o quitar filtro
+4. Debe mostrar todos
+
+PRUEBA 6: Ver Manual
+-------------------
+1. Click en "👁️ Ver" de un manual
+2. Debe abrir vista completa
+3. Contenido debe estar formateado
+4. Imágenes deben mostrarse
+5. Botón "Volver" debe regresar a la lista
+
+PRUEBA 7: Editar Manual
+-----------------------
+1. Click en "✏️ Editar"
+2. Modificar título: "Manual de Prueba EDITADO"
+3. Agregar más texto
+4. Guardar
+5. Cambios deben reflejarse
+6. Fecha de actualización debe cambiar
+
+PRUEBA 8: Eliminar Manual
+-------------------------
+1. Click en "🗑️ Eliminar"
+2. Confirmar
+3. Manual debe desaparecer
+4. Contador de carpeta debe decrementar
+
+PRUEBA 9: Gestión de Carpetas
+-----------------------------
+1. Click en "✏️ Editar" de una carpeta
+2. Cambiar nombre o descripción
+3. Guardar
+4. Debe actualizarse
+5. Intentar eliminar carpeta con manuales
+6. Debe advertir o mover manuales primero
+
+⚠️ SI ALGO FALLA:
+- Imágenes no se ven: Verificar formato (JPG, PNG)
+- Editor no funciona: Verificar que JavaScript esté habilitado
+- No guarda: Verificar campos requeridos
+
+================================================================================
+  10. MÓDULO: SERVICIOS Y CONTRASEÑAS
+================================================================================
+
+DESCRIPCIÓN:
+Gestor de credenciales corporativas. Almacena y organiza credenciales de
+servicios como correos, WiFi, cPanel, WordPress, etc.
+
+⚠️ IMPORTANTE DE SEGURIDAD:
+Por defecto, las contraseñas se guardan en texto plano en la BD.
+Ver GUIA_SEGURIDAD.md para implementar encriptación.
+
+RUTA: /credenciales
+
+QUÉ DEBERÍAS VER:
+-----------------
+- Título: "Servicios y Contraseñas"
+- BOTÓN: "+ Nueva Categoría"
+- BOTÓN: "+ Nueva Credencial"
+- Pestañas de categorías
+- Lista de credenciales por categoría
+- Barra de búsqueda
+- Filtros por estado
+
+ORGANIZACIÓN POR CATEGORÍAS:
+---------------------------
+Las credenciales se organizan en categorías (tabs):
+
+[Email] [WiFi] [cPanel] [WordPress] [Redes Sociales] [Otros]
+
+Cada categoría tiene su propia lista de credenciales.
+
+TIPOS DE CREDENCIALES PREDEFINIDOS:
+-----------------------------------
+1. EMAIL
+   - Campos: Correo, Contraseña, Servidor SMTP, Servidor IMAP
+
+2. WiFi
+   - Campos: SSID, Contraseña, Tipo de Seguridad
+
+3. cPanel
+   - Campos: URL, Usuario, Contraseña, Dominio
+
+4. WordPress
+   - Campos: URL, Usuario, Contraseña, Rol
+
+5. FTP
+   - Campos: Host, Puerto, Usuario, Contraseña
+
+6. Base de Datos
+   - Campos: Host, Base de Datos, Usuario, Contraseña
+
+7. Redes Sociales
+   - Campos: Plataforma, Usuario/Email, Contraseña
+
+8. VPN
+   - Campos: Servidor, Usuario, Contraseña, Protocolo
+
+9. Servidor
+   - Campos: IP/Host, Puerto, Usuario, Contraseña
+
+10. Otro
+    - Campos personalizables
+
+ESTADOS DE CREDENCIALES:
+------------------------
+- 🟢 ACTIVO: Credencial en uso actualmente
+- 🟡 ASIGNADO: Asignado a un usuario/área específica
+- 🔵 LIBRE: Disponible para asignar
+- 🔴 INACTIVO: Ya no se usa
+- ⚫ BLOQUEADO: Bloqueado por seguridad
+- 🟣 TEMPORAL: Credencial temporal
+
+BOTÓN NUEVA CATEGORÍA:
+---------------------
+┌─────────────────────────────────────────────────────────────┐
+│ [+ Nueva Categoría]                                         │
+│ ¿Qué hace?: Crea una nueva categoría personalizada         │
+│ ¿Cómo funciona?:                                            │
+│   1. Click → Abre modal                                      │
+│   2. Nombre de categoría                                     │
+│   3. Icono (opcional)                                        │
+│   4. Click "Crear" → Nueva pestaña aparece                  │
+└─────────────────────────────────────────────────────────────┘
+
+BOTÓN NUEVA CREDENCIAL:
+----------------------
+┌─────────────────────────────────────────────────────────────┐
+│ [+ Nueva Credencial]                                        │
+│ ¿Qué hace?: Abre formulario para nueva credencial          │
+│ ¿Cómo funciona?:                                            │
+│   1. Click → Abre formulario                                 │
+│   2. Seleccionar tipo/categoría                              │
+│   3. Llenar campos (dinámicos según tipo)                   │
+│   4. Click "Guardar" → Guarda en BD                         │
+└─────────────────────────────────────────────────────────────┘
+
+FORMULARIO DE NUEVA CREDENCIAL:
+-------------------------------
+Campos comunes a todos los tipos:
+
+┌─────────────────────────────────────────────────────────────┐
+│ Tipo/Categoría*                                             │
+│ Dropdown: Email, WiFi, cPanel, etc.                         │
+│ Al seleccionar, campos dinámicos aparecen                   │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ Nombre/Título*                                              │
+│ Identificador de la credencial                              │
+│ Ejemplo: "Correo del Director"                              │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ Estado*                                                     │
+│ Dropdown: Activo, Asignado, Libre, Inactivo, etc.          │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ Asignado a (Usuario/Área)                                   │
+│ Si está asignado, indicar a quién                           │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ Campos Dinámicos según Tipo                                 │
+│ Ejemplo si es EMAIL:                                        │
+│   - Correo electrónico*                                      │
+│   - Contraseña*                                              │
+│   - Servidor SMTP                                            │
+│   - Servidor IMAP                                            │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ Notas/Observaciones                                         │
+│ Información adicional relevante                             │
+└─────────────────────────────────────────────────────────────┘
+
+VISTA DE TARJETA DE CREDENCIAL:
+-------------------------------
+┌──────────────────────────────────────────────────────────┐
+│ 📧 Correo del Director                          [ACTIVO]  │
+│ ─────────────────────────────────────────────────────    │
+│ Categoría: Email                                          │
+│ Correo: director@empresa.com                              │
+│ Contraseña: ************ [👁️ Mostrar]                   │
+│ SMTP: mail.empresa.com                                    │
+│ Asignado a: Juan Director                                 │
+│                                                           │
+│ 📝 Notas: Cuenta principal del director                   │
+│                                                           │
+│ 📅 Creado: 2024-01-15                                    │
+│ 📅 Modificado: 2024-01-20                                │
+│                                                           │
+│ [👁️ Ver] [✏️ Editar] [📋 Copiar] [🗑️ Eliminar]        │
+└──────────────────────────────────────────────────────────┘
+
+FUNCIONALIDAD DE CONTRASEÑA:
+----------------------------
+Por defecto, contraseñas se muestran ocultas: ************
+
+┌─────────────────────────────────────────────────────────────┐
+│ [👁️ Mostrar Contraseña]                                    │
+│ ¿Qué hace?: Muestra la contraseña en texto plano           │
+│ ¿Cómo funciona?:                                            │
+│   1. Click → Contraseña visible temporalmente               │
+│   2. Se registra en log de auditoría (quién la vió)        │
+│   3. Click de nuevo → Oculta                                │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [📋 Copiar]                                                 │
+│ ¿Qué hace?: Copia la contraseña al portapapeles            │
+│ ¿Cómo funciona?:                                            │
+│   1. Click → Contraseña copiada                             │
+│   2. No se muestra visualmente                               │
+│   3. Muestra notificación "Copiado"                         │
+│   4. Se registra en auditoría                                │
+└─────────────────────────────────────────────────────────────┘
+
+BOTONES DE ACCIÓN:
+-----------------
+┌─────────────────────────────────────────────────────────────┐
+│ [👁️ Ver Completo]                                          │
+│ ¿Qué hace?: Abre vista detallada de la credencial          │
+│ ¿Cómo funciona?: Muestra todos los campos completos        │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [✏️ Editar]                                                 │
+│ ¿Qué hace?: Permite modificar la credencial                │
+│ ¿Cómo funciona?:                                            │
+│   1. Abre formulario con datos actuales                      │
+│   2. Modificar campos                                        │
+│   3. Guardar → Actualiza en BD                              │
+│   4. Registra cambio en historial                            │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [🗑️ Eliminar]                                               │
+│ ¿Qué hace?: Elimina la credencial                          │
+│ ¿Cómo funciona?:                                            │
+│   1. Confirmar eliminación                                   │
+│   2. Elimina de BD                                           │
+│   3. Registra en auditoría                                   │
+│ ⚠️ Acción irreversible                                     │
+└─────────────────────────────────────────────────────────────┘
+
+BÚSQUEDA Y FILTROS:
+------------------
+┌─────────────────────────────────────────────────────────────┐
+│ [🔍 Buscar credencial...]                                   │
+│ ¿Qué busca?: Nombre, usuario, correo, notas                │
+│ ¿Cómo funciona?: Escribe → Filtra en tiempo real           │
+└─────────────────────────────────────────────────────────────┘
+
+Filtros por estado:
+[Todos] [Activos] [Asignados] [Libres] [Inactivos]
+
+Click en filtro → Muestra solo credenciales de ese estado
+
+HISTORIAL DE CAMBIOS:
+--------------------
+Cada credencial registra:
+- Fecha de creación
+- Creado por (usuario)
+- Fecha de última modificación
+- Modificado por
+- ¿Quién vió la contraseña? (log de auditoría)
+
+✅ VALIDACIÓN COMPLETA:
+
+PRUEBA 1: Crear Categoría Personalizada
+---------------------------------------
+1. Click en "+ Nueva Categoría"
+2. Nombre: "VPN Empresarial"
+3. Guardar
+4. Debe aparecer nueva pestaña
+
+PRUEBA 2: Crear Credencial de Email
+-----------------------------------
+1. Click en "+ Nueva Credencial"
+2. Tipo: "Email"
+3. Llenar:
+   - Nombre: "Correo IT"
+   - Estado: "Activo"
+   - Correo: "it@empresa.com"
+   - Contraseña: "Password123!"
+   - SMTP: "smtp.empresa.com"
+   - Asignado a: "Departamento IT"
+4. Guardar
+5. Debe aparecer en categoría "Email"
+
+PRUEBA 3: Ver Contraseña
+------------------------
+1. Localizar la credencial creada
+2. Contraseña debe estar oculta: ************
+3. Click en "👁️ Mostrar"
+4. Debe mostrarse: "Password123!"
+5. Click de nuevo
+6. Debe ocultarse de nuevo
+
+PRUEBA 4: Copiar Contraseña
+---------------------------
+1. Click en "📋 Copiar"
+2. Debe mostrar notificación "Copiado"
+3. Abrir bloc de notas
+4. Pegar (Ctrl+V)
+5. Debe aparecer la contraseña
+
+PRUEBA 5: Editar Credencial
+---------------------------
+1. Click en "✏️ Editar"
+2. Cambiar estado a "Asignado"
+3. Cambiar "Asignado a": "Juan Pérez"
+4. Guardar
+5. Debe reflejar cambios
+6. Fecha de modificación debe actualizarse
+
+PRUEBA 6: Filtrar por Estado
+----------------------------
+1. Click en filtro "Activos"
+2. Debe mostrar solo credenciales activas
+3. Click en "Todos"
+4. Debe mostrar todas
+
+PRUEBA 7: Buscar Credencial
+---------------------------
+1. Escribir en búsqueda: "IT"
+2. Debe filtrar credenciales con "IT"
+3. Borrar búsqueda
+4. Mostrar todas
+
+PRUEBA 8: Cambiar de Categoría
+------------------------------
+1. Click en pestaña "WiFi"
+2. Debe mostrar credenciales de WiFi
+3. Click en "+ Nueva Credencial"
+4. Tipo debe ser "WiFi" automáticamente
+5. Crear credencial de WiFi:
+   - SSID: "Empresa_WiFi"
+   - Contraseña: "WifiPass123"
+   - Seguridad: "WPA2"
+6. Guardar
+7. Debe aparecer en pestaña WiFi
+
+PRUEBA 9: Verificar Campos Dinámicos
+------------------------------------
+1. Crear credencial, tipo "cPanel"
+2. Debe mostrar campos: URL, Usuario, Password, Dominio
+3. Cancelar
+4. Crear credencial, tipo "WordPress"
+5. Debe mostrar campos diferentes: URL, Usuario, Password, Rol
+
+PRUEBA 10: Eliminar Credencial
+------------------------------
+1. Click en "🗑️ Eliminar"
+2. Debe pedir confirmación
+3. Confirmar
+4. Debe desaparecer de la lista
+
+⚠️ ADVERTENCIA DE SEGURIDAD:
+Las contraseñas se guardan SIN ENCRIPTACIÓN por defecto.
+Para producción, implementar encriptación según GUIA_SEGURIDAD.md
+
+⚠️ SI ALGO FALLA:
+- Contraseña no se oculta: Verificar JavaScript
+- Copiar no funciona: Verificar permisos del navegador
+- Campos no aparecen: Verificar selección de tipo
+
+================================================================================
+  11. MÓDULO: RESPALDO DE DATOS
+================================================================================
+
+DESCRIPCIÓN:
+Módulo para exportar e importar todos los datos del sistema en formato JSON.
+Permite hacer backups y restaurar información.
+
+RUTA: /respaldo
+
+QUÉ DEBERÍAS VER:
+-----------------
+- Título: "Respaldo de Datos"
+- Sección: EXPORTAR DATOS
+  * BOTÓN: "📥 Exportar Equipos"
+  * BOTÓN: "📥 Exportar Mantenimientos"
+  * BOTÓN: "📥 Exportar Bitácoras"
+  * BOTÓN: "📥 Exportar Credenciales"
+  * BOTÓN: "📥 Exportar Manuales"
+  * BOTÓN: "📥 EXPORTAR TODO"
+
+- Sección: IMPORTAR DATOS
+  * Selector de archivo
+  * BOTÓN: "📤 Importar Datos"
+
+- Sección: INFORMACIÓN
+  * Última exportación
+  * Última importación
+  * Total de registros
+
+SECCIÓN DE EXPORTACIÓN:
+----------------------
+Cada botón de exportación descarga un archivo JSON.
+
+┌─────────────────────────────────────────────────────────────┐
+│ [📥 Exportar Equipos]                                       │
+│ ¿Qué hace?: Descarga archivo JSON con todos los equipos    │
+│ ¿Cómo funciona?:                                            │
+│   1. Click → Consulta BD                                     │
+│   2. Genera archivo JSON                                     │
+│   3. Descarga: equipos_YYYYMMDD_HHMMSS.json                 │
+│ Contenido: Array de todos los equipos                       │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [📥 Exportar Mantenimientos]                                │
+│ ¿Qué hace?: Descarga JSON con todos los mantenimientos     │
+│ Archivo: mantenimientos_YYYYMMDD_HHMMSS.json                │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [📥 Exportar Bitácoras]                                     │
+│ ¿Qué hace?: Descarga JSON con todas las bitácoras          │
+│ Archivo: bitacoras_YYYYMMDD_HHMMSS.json                     │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [📥 Exportar Credenciales]                                  │
+│ ¿Qué hace?: Descarga JSON con todas las credenciales       │
+│ Archivo: credenciales_YYYYMMDD_HHMMSS.json                  │
+│ ⚠️ CUIDADO: Contiene contraseñas en texto plano            │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [📥 Exportar Manuales]                                      │
+│ ¿Qué hace?: Descarga JSON con todos los manuales/wiki      │
+│ Archivo: manuales_YYYYMMDD_HHMMSS.json                      │
+│ Incluye: Carpetas y contenido completo                      │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [📥 EXPORTAR TODO]                                          │
+│ ¿Qué hace?: Descarga backup completo del sistema           │
+│ ¿Cómo funciona?:                                            │
+│   1. Click → Exporta TODOS los módulos                      │
+│   2. Genera 1 archivo con todo                               │
+│   3. Descarga: backup_completo_YYYYMMDD_HHMMSS.json         │
+│ Contenido:                                                   │
+│   - Equipos                                                  │
+│   - Mantenimientos                                           │
+│   - Bitácoras                                                │
+│   - Credenciales                                             │
+│   - Manuales y carpetas                                      │
+│   - Categorías                                               │
+│ 💡 Usar para backup completo del sistema                   │
+└─────────────────────────────────────────────────────────────┘
+
+FORMATO DEL ARCHIVO JSON:
+-------------------------
+Ejemplo de estructura:
+
+{
+  "exportDate": "2026-01-03T10:30:00Z",
+  "exportedBy": "soporteti",
+  "version": "1.0.0",
+  "equipments": [...],
+  "maintenances": [...],
+  "bitacoras": [...],
+  "credentials": [...],
+  "manuals": [...]
+}
+
+SECCIÓN DE IMPORTACIÓN:
+-----------------------
+┌─────────────────────────────────────────────────────────────┐
+│ Seleccionar archivo JSON                                    │
+│ [📁 Elegir archivo...]                                      │
+│                                                              │
+│ Archivo seleccionado: backup_completo_20260103.json         │
+│                                                              │
+│ [📤 Importar Datos]                                         │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ [📤 Importar Datos]                                         │
+│ ¿Qué hace?: Restaura datos desde archivo JSON              │
+│ ¿Cómo funciona?:                                            │
+│   1. Seleccionar archivo JSON exportado previamente          │
+│   2. Click "Importar Datos"                                  │
+│   3. Sistema valida el archivo                               │
+│   4. Pregunta si sobrescribir o agregar                      │
+│   5. Importa datos a la BD                                   │
+│   6. Muestra resumen de importación                          │
+│                                                              │
+│ ⚠️ OPCIONES:                                                │
+│   - Sobrescribir: Reemplaza datos existentes                │
+│   - Agregar: Añade sin eliminar existentes                  │
+│   - Fusionar: Actualiza existentes, agrega nuevos           │
+└─────────────────────────────────────────────────────────────┘
+
+ESTADÍSTICAS DEL SISTEMA:
+-------------------------
+┌──────────────────────────────────────────────────────────┐
+│ INFORMACIÓN DEL SISTEMA                                   │
+│ ─────────────────────────────────────────────────────    │
+│ 📊 Total de Equipos: 45                                  │
+│ 📊 Total de Mantenimientos: 128                           │
+│ 📊 Total de Bitácoras: 60                                 │
+│ 📊 Total de Credenciales: 32                              │
+│ 📊 Total de Manuales: 18                                  │
+│                                                           │
+│ 📅 Última Exportación: 2026-01-02 15:30                  │
+│ 📅 Última Importación: 2026-01-01 09:00                  │
+│                                                           │
+│ 💾 Tamaño estimado del backup: ~5.2 MB                   │
+└──────────────────────────────────────────────────────────┘
+
+✅ VALIDACIÓN COMPLETA:
+
+PRUEBA 1: Exportar Equipos
+--------------------------
+1. Click en "📥 Exportar Equipos"
+2. Debe iniciar descarga de archivo
+3. Verificar que el archivo se descargó
+4. Nombre debe ser: equipos_YYYYMMDD_HHMMSS.json
+5. Abrir archivo con bloc de notas
+6. Debe ser JSON válido con array de equipos
+7. Verificar que contenga todos los equipos
+
+PRUEBA 2: Exportar Todo (Backup Completo)
+-----------------------------------------
+1. Click en "📥 EXPORTAR TODO"
+2. Puede tardar unos segundos
+3. Debe descargar archivo grande
+4. Nombre: backup_completo_YYYYMMDD_HHMMSS.json
+5. Abrir archivo
+6. Debe contener secciones:
+   - equipments
+   - maintenances
+   - bitacoras
+   - credentials
+   - manuals
+
+PRUEBA 3: Importar Datos Correctos
+----------------------------------
+1. Tener un archivo JSON exportado previamente
+2. Click en "📁 Elegir archivo"
+3. Seleccionar el archivo JSON
+4. Debe mostrar nombre del archivo
+5. Click en "📤 Importar Datos"
+6. Debe mostrar opciones: Sobrescribir/Agregar/Fusionar
+7. Seleccionar "Agregar"
+8. Confirmar
+9. Debe mostrar progreso
+10. Al terminar, mostrar resumen:
+    - Equipos importados: X
+    - Mantenimientos importados: X
+    - etc.
+
+PRUEBA 4: Importar Archivo Inválido
+-----------------------------------
+1. Crear archivo .txt con texto cualquiera
+2. Renombrar a .json
+3. Intentar importar
+4. DEBE mostrar error: "Archivo inválido"
+5. NO debe importar nada
+
+PRUEBA 5: Verificar Estadísticas
+--------------------------------
+1. Revisar sección de información
+2. Los números deben coincidir con la realidad
+3. Crear un equipo nuevo
+4. Refrescar página
+5. "Total de Equipos" debe incrementar en 1
+
+PRUEBA 6: Ciclo Completo (Exportar → Borrar → Importar)
+-------------------------------------------------------
+1. Exportar TODO
+2. Guardar el archivo en lugar seguro
+3. Eliminar un equipo del inventario
+4. Verificar que el equipo ya no existe
+5. Importar el archivo exportado
+6. Seleccionar "Fusionar"
+7. El equipo eliminado debe reaparecer
+
+PRUEBA 7: Guardar Backups Regularmente
+--------------------------------------
+1. Exportar TODO una vez por semana
+2. Guardar archivos con fecha en nombre
+3. Tener al menos 3 backups recientes
+4. Ejemplo:
+   - backup_20260103.json
+   - backup_20260110.json
+   - backup_20260117.json
+
+⚠️ ADVERTENCIAS IMPORTANTES:
+
+1. 🔴 Los archivos de credenciales contienen contraseñas
+   - Protegerlos con contraseña del sistema operativo
+   - No enviar por email sin encriptar
+   - Guardar en lugar seguro
+
+2. 🟡 Importar con "Sobrescribir" ELIMINA datos actuales
+   - Usar solo si quieres restaurar desde cero
+   - Hacer backup antes de sobrescribir
+
+3. 🟡 Archivos JSON pueden ser muy grandes
+   - Si tienes muchas imágenes en manuales
+   - Pueden ser varios MB
+   - Verificar espacio en disco
+
+⚠️ SI ALGO FALLA:
+- No descarga: Verificar permisos del navegador
+- Archivo corrupto: Verificar que exportación terminó completa
+- Importación falla: Verificar formato JSON válido
+
+================================================================================
+  12. MÓDULO: REPORTES
+================================================================================
+
+DESCRIPCIÓN:
+Generación de reportes ejecutivos y estadísticos del sistema con opción
+de impresión.
+
+RUTA: /reportes
+
+QUÉ DEBERÍAS VER:
+-----------------
+- Título: "Reportes y Estadísticas"
+- Selector de tipo de reporte
+- Filtros (Fechas, Áreas, etc.)
+- BOTÓN: "Generar Reporte"
+- BOTÓN: "🖨️ Imprimir"
+- Visualización del reporte generado
+
+TIPOS DE REPORTES:
+-----------------
+1. Reporte de Inventario
+2. Reporte de Mantenimientos
+3. Reporte de Bitácora Mensual
+4. Reporte de Credenciales
+5. Reporte Ejecutivo General
+
+SELECTOR DE TIPO:
+----------------
+┌─────────────────────────────────────────────────────────────┐
+│ [Tipo de Reporte]                                           │
+│ Dropdown con opciones:                                      │
+│   - Inventario de Equipos                                    │
+│   - Historial de Mantenimientos                              │
+│   - Bitácora Mensual                                         │
+│   - Resumen de Credenciales                                  │
+│   - Reporte Ejecutivo                                        │
+└─────────────────────────────────────────────────────────────┘
+
+FILTROS COMUNES:
+---------------
+┌─────────────────────────────────────────────────────────────┐
+│ Fecha Inicio: [__/__/____]                                  │
+│ Fecha Fin:    [__/__/____]                                  │
+│ Área:         [Dropdown: Todas/Específica]                  │
+│ Estado:       [Dropdown: Todos/OK/Riesgo/Crítico]           │
+└─────────────────────────────────────────────────────────────┘
+
+BOTÓN GENERAR:
+-------------
+┌─────────────────────────────────────────────────────────────┐
+│ [📊 Generar Reporte]                                        │
+│ ¿Qué hace?: Genera el reporte con filtros seleccionados    │
+│ ¿Cómo funciona?:                                            │
+│   1. Valida filtros                                          │
+│   2. Consulta datos del backend                              │
+│   3. Procesa y formatea información                          │
+│   4. Muestra reporte visualmente                             │
+│   5. Habilita botón de imprimir                              │
+└─────────────────────────────────────────────────────────────┘
+
+EJEMPLO: REPORTE DE INVENTARIO
+------------------------------
+Muestra:
+
+┌──────────────────────────────────────────────────────────┐
+│ REPORTE DE INVENTARIO DE EQUIPOS                         │
+│ Fecha: 03 de Enero 2026                                  │
+│ ═════════════════════════════════════════════════════    │
+│                                                           │
+│ RESUMEN GENERAL                                           │
+│ ─────────────────────────────────────────────────────    │
+│ Total de Equipos: 45                                      │
+│   - PCs: 20                                               │
+│   - Laptops: 15                                           │
+│   - Monitores: 30                                         │
+│   - Periféricos: 40                                       │
+│                                                           │
+│ POR ESTADO                                                │
+│ ─────────────────────────────────────────────────────    │
+│   - OK: 35 (78%)                                          │
+│   - Riesgo: 8 (18%)                                       │
+│   - Crítico: 2 (4%)                                       │
+│                                                           │
+│ POR ÁREA                                                  │
+│ ─────────────────────────────────────────────────────    │
+│   - IT: 5 equipos                                         │
+│   - Administración: 12 equipos                            │
+│   - Ventas: 18 equipos                                    │
+│   - Producción: 10 equipos                                │
+│                                                           │
+│ GRÁFICOS                                                  │
+│ [Gráfico de barras de equipos por área]                  │
+│ [Gráfico de pastel de estados]                           │
+│                                                           │
+│ DETALLE POR EQUIPO                                        │
+│ [Tabla con todos los equipos y sus detalles]             │
+└──────────────────────────────────────────────────────────┘
+
+EJEMPLO: REPORTE DE MANTENIMIENTOS
+----------------------------------
+Muestra:
+- Total de mantenimientos en el período
+- Preventivos vs Correctivos
+- Equipos con más mantenimientos
+- Técnicos que realizaron mantenimientos
+- Tiempo promedio de mantenimiento
+- Problemas más comunes
+- Gráfico de tendencia mensual
+
+BOTÓN IMPRIMIR:
+--------------
+┌─────────────────────────────────────────────────────────────┐
+│ [🖨️ Imprimir Reporte]                                      │
+│ ¿Qué hace?: Abre diálogo de impresión                      │
+│ ¿Cómo funciona?:                                            │
+│   1. Click → Formatea página para impresión                 │
+│   2. Oculta menús y botones                                  │
+│   3. Ajusta estilos para papel                               │
+│   4. Abre ventana de impresión del navegador                │
+│   5. Permite imprimir o guardar como PDF                     │
+│                                                              │
+│ 💡 Tip: Usa "Guardar como PDF" para archivo digital        │
+└─────────────────────────────────────────────────────────────┘
+
+✅ VALIDACIÓN COMPLETA:
+
+PRUEBA 1: Generar Reporte de Inventario
+---------------------------------------
+1. Seleccionar tipo: "Inventario de Equipos"
+2. Dejar filtros en "Todos"
+3. Click "Generar Reporte"
+4. Debe mostrar reporte completo
+5. Verificar que números coincidan con inventario
+6. Gráficos deben renderizarse
+
+PRUEBA 2: Filtrar Reporte por Área
+----------------------------------
+1. Tipo: "Inventario de Equipos"
+2. Área: Seleccionar "IT"
+3. Generar
+4. Debe mostrar SOLO equipos de IT
+5. Total debe ser menor que reporte completo
+
+PRUEBA 3: Reporte de Mantenimientos por Período
+-----------------------------------------------
+1. Tipo: "Historial de Mantenimientos"
+2. Fecha inicio: 01/01/2026
+3. Fecha fin: 31/01/2026
+4. Generar
+5. Debe mostrar solo mantenimientos de enero
+6. Verificar fechas en el detalle
+
+PRUEBA 4: Imprimir Reporte
+--------------------------
+1. Generar cualquier reporte
+2. Click en "🖨️ Imprimir"
+3. Debe abrir ventana de impresión
+4. En opciones, seleccionar "Guardar como PDF"
+5. Guardar archivo
+6. Abrir PDF
+7. Verificar que:
+   - No aparecen menús del sistema
+   - No aparecen botones
+   - Formato está limpio para papel
+   - Gráficos se ven correctos
+
+PRUEBA 5: Reporte Ejecutivo
+---------------------------
+1. Tipo: "Reporte Ejecutivo"
+2. Generar
+3. Debe mostrar resumen de TODO el sistema:
+   - Inventario
+   - Mantenimientos
+   - Bitácora
+   - Tendencias
+   - Alertas
+4. Debe ser visualmente atractivo
+5. Usar para presentaciones a gerencia
+
+⚠️ SI ALGO FALLA:
+- Gráficos no aparecen: Verificar librería Recharts
+- Datos incorrectos: Verificar filtros aplicados
+- No imprime: Verificar permisos del navegador
+
+================================================================================
+  13. VALIDACIÓN DE SEGURIDAD
+================================================================================
+
+PRUEBAS DE SEGURIDAD BÁSICAS:
+
+PRUEBA 1: Protección de Rutas
+-----------------------------
+1. Cerrar sesión (logout)
+2. En la barra de direcciones, ir a: http://localhost:3000/dashboard
+3. NO debe mostrar dashboard
+4. DEBE redirigir a Login
+5. Mismo con /inventory, /bitacora, etc.
+
+PRUEBA 2: Expiración de Token
+-----------------------------
+1. Hacer login
+2. Esperar 7 días (o modificar JWT_EXPIRE a 1m para probar)
+3. Intentar hacer alguna operación
+4. DEBE mostrar error de token expirado
+5. DEBE obligar a hacer login de nuevo
+
+PRUEBA 3: Validación de Campos
+------------------------------
+1. Intentar crear equipo sin campos requeridos
+2. DEBE mostrar error de validación
+3. NO debe enviar request al backend
+4. Llenar solo algunos campos
+5. Intentar guardar
+6. DEBE indicar qué campos faltan
+
+PRUEBA 4: SQL Injection Básico
+------------------------------
+1. En campo de login, usuario: admin' OR '1'='1
+2. Password: cualquiera
+3. NO debe permitir login
+4. DEBE rechazar con error
+
+PRUEBA 5: XSS Básico
+--------------------
+1. Crear equipo con nombre: <script>alert('XSS')</script>
+2. Guardar
+3. Ver lista de equipos
+4. NO debe ejecutar el script
+5. DEBE mostrar el texto literal
+
+✅ VALIDACIÓN:
+Si todas estas pruebas fallan (no permiten ataque), la seguridad básica
+está funcionando correctamente.
+
+================================================================================
+  14. PRUEBAS DE INTEGRACIÓN
+================================================================================
+
+FLUJO COMPLETO 1: Ciclo de Vida de un Equipo
+--------------------------------------------
+1. Login como admin
+2. Ir a Inventario
+3. Crear nuevo equipo (PC-TEST-001)
+4. Verificar en lista
+5. Entrar a detalle del equipo
+6. Asignar mouse, teclado, monitor
+7. Registrar mantenimiento preventivo
+8. Volver a inventario
+9. Equipo debe mostrar fecha de último mantenimiento
+10. Ir a Dashboard
+11. Estadísticas deben reflejar nuevo equipo
+12. Ir a Reportes
+13. Generar reporte de inventario
+14. Equipo debe aparecer en reporte
+
+FLUJO COMPLETO 2: Día Completo en Bitácora
+------------------------------------------
+1. Ir a Bitácora TI
+2. Seleccionar hoy
+3. Estado del día: OK
+4. Agregar resumen del día
+5. Crear 3 solicitudes:
+   - Soporte técnico (Prioridad Alta)
+   - Mantenimiento (Prioridad Media)
+   - Instalación (Prioridad Baja)
+6. Completar la de prioridad alta
+7. Dejar las otras en proceso
+8. Guardar bitácora
+9. Cambiar a día siguiente
+10. Verificar que bitácora de hoy se guardó
+11. Volver a hoy
+12. Bitácora debe mantener todo
+
+FLUJO COMPLETO 3: Backup y Restore
+----------------------------------
+1. Crear datos de prueba en todos los módulos
+2. Ir a Respaldo de Datos
+3. Exportar TODO
+4. Guardar archivo
+5. Eliminar algunos equipos
+6. Eliminar algunas credenciales
+7. Importar el archivo guardado
+8. Seleccionar "Fusionar"
+9. Verificar que todo volvió
+10. Los datos eliminados deben reaparecer
+
+FLUJO COMPLETO 4: Gestión de Conocimiento
+-----------------------------------------
+1. Ir a Manuales TI
+2. Crear carpeta "Procedimientos IT"
+3. Crear manual "Cómo configurar nuevo equipo"
+4. Agregar contenido con imágenes
+5. Agregar tags: configuración, equipo, nuevo
+6. Guardar
+7. Buscar por tag "equipo"
+8. Debe aparecer el manual
+9. Ver manual completo
+10. Editar y agregar más información
+11. Verificar cambios guardados
+
+================================================================================
+  15. CHECKLIST FINAL DE VALIDACIÓN
+================================================================================
+
+ANTES DE CONSIDERAR EL SISTEMA LISTO:
+
+CONFIGURACIÓN
+□ Backend corriendo sin errores
+□ Frontend corriendo sin errores
+□ MongoDB conectado
+□ Variables de entorno configuradas
+□ Archivos .env NO están en Git
+
+AUTENTICACIÓN
+□ Login funciona correctamente
+□ Logout funciona correctamente
+□ Rutas protegidas funcionan
+□ Token se guarda en localStorage
+□ Redirección automática si no hay token
+
+INVENTARIO
+□ Crear equipo funciona
+□ Editar equipo funciona
+□ Eliminar equipo funciona
+□ Filtros funcionan
+□ Búsqueda funciona
+□ Vista de detalle funciona
+
+MANTENIMIENTOS
+□ Registrar mantenimiento funciona
+□ Historial se muestra correctamente
+□ Fotos se pueden subir (si implementado)
+
+BITÁCORA
+□ Crear bitácora diaria funciona
+□ Agregar solicitudes funciona
+□ Completar solicitudes funciona
+□ Cambiar de fecha funciona
+□ Guardar bitácora funciona
+
+MANUALES
+□ Crear carpeta funciona
+□ Crear manual funciona
+□ Editor de texto funciona
+□ Insertar imágenes funciona
+□ Búsqueda funciona
+
+CREDENCIALES
+□ Crear categoría funciona
+□ Crear credencial funciona
+□ Mostrar/ocultar contraseña funciona
+□ Copiar contraseña funciona
+□ Filtros funcionan
+
+RESPALDO
+□ Exportar módulos individuales funciona
+□ Exportar TODO funciona
+□ Importar funciona
+□ Archivos JSON son válidos
+
+REPORTES
+□ Generar reporte funciona
+□ Gráficos se renderizan
+□ Filtros funcionan
+□ Imprimir funciona
+□ PDF se genera correctamente
+
+SEGURIDAD
+□ Contraseñas hasheadas en BD
+□ JWT funciona
+□ Rutas protegidas
+□ Validación de campos funciona
+□ No hay vulnerabilidades obvias
+
+RENDIMIENTO
+□ Carga rápida de páginas
+□ Sin delays notables
+□ Gráficos renderizan fluido
+□ Búsquedas son instantáneas
+
+EXPERIENCIA DE USUARIO
+□ Interfaz limpia y clara
+□ Botones funcionan al primer click
+□ Mensajes de error son claros
+□ Notificaciones de éxito aparecen
+□ Navegación es intuitiva
+
+================================================================================
+  CONCLUSIÓN
+================================================================================
+
+Si completaste TODAS las pruebas de esta guía y TODO funciona correctamente,
+tu sistema está VALIDADO y LISTO PARA USO.
+
+PRÓXIMOS PASOS:
+1. Configurar para producción (ver GUIA_SEGURIDAD.md)
+2. Cambiar credenciales por defecto
+3. Generar JWT secrets seguros
+4. Implementar encriptación de credenciales
+5. Configurar backups automáticos
+
+DOCUMENTACIÓN DE REFERENCIA:
+- INICIO_RAPIDO.md - Para comenzar
+- PROYECTO_README.md - Documentación completa
+- CAMBIOS_Y_MEJORAS.md - Todos los cambios realizados
+- GUIA_SEGURIDAD.md - Configuración segura
+- RESUMEN_CAMBIOS.txt - Resumen ejecutivo
+
+================================================================================
+  FIN DE LA GUÍA DE VALIDACIÓN
+================================================================================
+
+Generado: 2026-01-03
+Versión: 1.0.0
+Sistema: Mantenimiento Preventivo IT
