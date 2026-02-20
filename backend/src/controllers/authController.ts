@@ -1,8 +1,9 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { User } from '../models/User';
 import { generateAccessToken, generateRefreshToken } from '../utils/jwt';
+import { AuthRequest } from '../types';
 
-export const register = async (req: Request, res: Response): Promise<void> => {
+export const register = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { username, email, password, role } = req.body;
 
@@ -47,7 +48,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export const login = async (req: Request, res: Response): Promise<void> => {
+export const login = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { username, password } = req.body;
 
@@ -99,10 +100,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export const getMe = async (req: Request, res: Response): Promise<void> => {
+export const getMe = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const authReq = req as any;
-    const userId = authReq.user?.id;
+    const userId = req.user?.id;
 
     const user = await User.findById(userId).select('-password');
 

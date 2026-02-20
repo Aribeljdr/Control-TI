@@ -1,11 +1,12 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { AuthRequest } from '../types';
 import { Equipment } from '../models/Equipment';
 import { Maintenance } from '../models/Maintenance';
 import { Bitacora } from '../models/Bitacora';
 import { Manual, ManualFolder } from '../models/Manual';
 import { Credential, CredentialCategory } from '../models/Credential';
 
-export const exportDatabase = async (req: Request, res: Response) => {
+export const exportDatabase = async (req: AuthRequest, res: Response) => {
   try {
     // Recolectar toda la data en paralelo
     const [
@@ -30,7 +31,7 @@ export const exportDatabase = async (req: Request, res: Response) => {
       appName: "Mantenimiento Preventivo IT",
       schemaVersion: "2.0.0",
       exportedAt: new Date().toISOString(),
-      exportedBy: (req as any).user?.username || 'Sistema',
+      exportedBy: req.user?.username || 'Sistema',
       counts: {
         equipment: equipments.length,
         maintenances: maintenances.length,
@@ -57,13 +58,13 @@ export const exportDatabase = async (req: Request, res: Response) => {
   }
 };
 
-export const importDatabase = async (req: Request, res: Response) => {
+export const importDatabase = async (req: AuthRequest, res: Response) => {
   try {
     const backup = req.body;
 
-    // Validación básica de seguridad
-    if (backup.appName !== "Mantenimiento Preventivo IT") {
-      return res.status(400).json({ success: false, message: 'Archivo de respaldo no válido para este sistema.' });
+    if (backup.appName !== 'Mantenimiento Preventivo IT') {
+      res.status(400).json({ success: false, message: 'Archivo de respaldo no válido para este sistema.' });
+      return;
     }
 
     const { data } = backup;

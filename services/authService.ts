@@ -1,4 +1,5 @@
 import { apiClient } from './api';
+import { authStorage } from '../utils/authStorage';
 
 export interface LoginCredentials {
   username: string;
@@ -45,13 +46,12 @@ export const authService = {
     const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
     if (response.success && response.data.accessToken) {
       apiClient.setToken(response.data.accessToken);
-      localStorage.setItem('mp_auth_session', JSON.stringify({
-        isLoggedIn: true,
-        username: response.data.user.username,
-        loggedAt: new Date().toISOString(),
-        token: response.data.accessToken,
-        refreshToken: response.data.refreshToken,
-      }));
+      authStorage.set(
+        response.data.user.username,
+        response.data.accessToken,
+        response.data.refreshToken,
+        response.data.user.role,
+      );
     }
     return response;
   },
@@ -60,13 +60,12 @@ export const authService = {
     const response = await apiClient.post<AuthResponse>('/auth/register', data);
     if (response.success && response.data.accessToken) {
       apiClient.setToken(response.data.accessToken);
-      localStorage.setItem('mp_auth_session', JSON.stringify({
-        isLoggedIn: true,
-        username: response.data.user.username,
-        loggedAt: new Date().toISOString(),
-        token: response.data.accessToken,
-        refreshToken: response.data.refreshToken,
-      }));
+      authStorage.set(
+        response.data.user.username,
+        response.data.accessToken,
+        response.data.refreshToken,
+        response.data.user.role,
+      );
     }
     return response;
   },
@@ -77,6 +76,6 @@ export const authService = {
 
   logout() {
     apiClient.clearToken();
-    localStorage.removeItem('mp_auth_session');
+    authStorage.clear();
   },
 };

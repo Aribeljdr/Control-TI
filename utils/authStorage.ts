@@ -1,6 +1,7 @@
 export interface AuthData {
   isLoggedIn: boolean;
   username: string;
+  role?: string;
   loggedAt: string;
   token?: string;
   refreshToken?: string;
@@ -14,10 +15,11 @@ export const authStorage = {
     return data ? JSON.parse(data) : null;
   },
 
-  set: (username: string, token?: string, refreshToken?: string) => {
+  set: (username: string, token?: string, refreshToken?: string, role?: string) => {
     const data: AuthData = {
       isLoggedIn: true,
       username,
+      role,
       loggedAt: new Date().toISOString(),
       token,
       refreshToken,
@@ -31,15 +33,7 @@ export const authStorage = {
 
   isAuthenticated: (): boolean => {
     const data = authStorage.get();
-    if (!data?.isLoggedIn) return false;
-
-    // Verificar si hay token
-    if (data.token) {
-      return true;
-    }
-
-    // Si no hay token, no está autenticado
-    return false;
+    return !!(data?.isLoggedIn && data.token);
   },
 
   getToken: (): string | null => {

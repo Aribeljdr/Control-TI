@@ -13,7 +13,8 @@
       "Bash(curl:*)",
       "Bash(taskkill //F //PID 5204)",
       "Bash(taskkill //F //PID 4772)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(dir:*)"
     ]
   }
 }

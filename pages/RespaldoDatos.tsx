@@ -17,32 +17,6 @@ import {
   ChevronRight
 } from 'lucide-react';
 
-// Estructura del respaldo
-interface BackupStructure {
-  appName: string;
-  schemaVersion: string;
-  exportedAt: string;
-  exportedBy: string;
-  counts: {
-    equipment: number;
-    maintenances: number;
-    bitacoraDays: number;
-    manualFolders: number;
-    manualFiles: number;
-    credentialCategories: number;
-    credentials: number;
-  };
-  data: {
-    equipments: any[];
-    maintenances: any[];
-    bitacora: Record<string, any>;
-    folders: any[];
-    manuals: any[];
-    credCategories: any[];
-    credentials: any[];
-  };
-}
-
 import { backupService, BackupStructure } from '../services/backupService';
 
 export const RespaldoDatos: React.FC = () => {

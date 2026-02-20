@@ -1,3 +1,12 @@
+/**
+ * Cliente HTTP para el backend Express.
+ * No se usa en modo standalone (IndexedDB).
+ * Conservado para reactivar la conexión al servidor cuando se despliegue el backend.
+ */
+
+/*
+import { authStorage } from '../utils/authStorage';
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 class ApiClient {
@@ -6,96 +15,47 @@ class ApiClient {
 
   constructor(baseURL: string) {
     this.baseURL = baseURL;
-    this.loadToken();
   }
 
-  private loadToken() {
-    const authData = localStorage.getItem('mp_auth_session');
-    if (authData) {
-      try {
-        const { token } = JSON.parse(authData);
-        this.token = token;
-      } catch (error) {
-        console.error('Error loading token:', error);
-      }
-    }
-  }
+  setToken(token: string) { this.token = token; }
+  clearToken() { this.token = null; }
 
-  setToken(token: string) {
-    this.token = token;
-  }
-
-  clearToken() {
-    this.token = null;
-  }
-
-  private async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<T> {
-    // Recargar el token antes de cada petición
-    this.loadToken();
-
+  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    const token = this.token || authStorage.getToken();
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...(options.headers || {}),
     };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
-    }
+    const response = await fetch(`${this.baseURL}${endpoint}`, { ...options, headers });
 
-    const config: RequestInit = {
-      ...options,
-      headers,
-    };
-
-    try {
-      const response = await fetch(`${this.baseURL}${endpoint}`, config);
-
-      if (!response.ok) {
-        const error = await response.json().catch(() => ({
-          message: 'Error desconocido',
-        }));
-
-        // Si es error de autenticación, limpiar token y redirigir
-        if (response.status === 401) {
-          localStorage.removeItem('mp_auth_session');
-          window.location.href = '/login';
-          throw new Error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
-        }
-
-        throw new Error(error.message || 'Error en la petición');
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Error desconocido' }));
+      if (response.status === 401) {
+        authStorage.clear();
+        this.token = null;
+        window.location.href = '/';
+        throw new Error('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
       }
-
-      return await response.json();
-    } catch (error: any) {
-      console.error('API Error:', error);
-      throw error;
+      throw new Error(error.message || 'Error en la petición');
     }
+
+    return response.json();
   }
 
-  async get<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'GET' });
+  get<T>(endpoint: string): Promise<T> { return this.request<T>(endpoint, { method: 'GET' }); }
+  post<T>(endpoint: string, data?: unknown): Promise<T> {
+    return this.request<T>(endpoint, { method: 'POST', body: data !== undefined ? JSON.stringify(data) : undefined });
   }
-
-  async post<T>(endpoint: string, data?: any): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
-    });
+  put<T>(endpoint: string, data: unknown): Promise<T> {
+    return this.request<T>(endpoint, { method: 'PUT', body: JSON.stringify(data) });
   }
-
-  async put<T>(endpoint: string, data: any): Promise<T> {
-    return this.request<T>(endpoint, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
-  }
-
-  async delete<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'DELETE' });
-  }
+  delete<T>(endpoint: string): Promise<T> { return this.request<T>(endpoint, { method: 'DELETE' }); }
 }
 
 export const apiClient = new ApiClient(API_URL);
+*/
+
+// Stub para que los archivos que aún importen apiClient no rompan el build
+export const apiClient = null as never;

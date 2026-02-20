@@ -1,3 +1,8 @@
+/**
+ * Hook central de estado.
+ * Usa IndexedDB para persistencia local — sin dependencia de backend externo.
+ * Compatible con Vercel (100% client-side).
+ */
 import { useState, useEffect, useCallback } from 'react';
 import {
   Equipment,
@@ -6,14 +11,12 @@ import {
   ManualFolder,
   ManualFile,
   CredentialCategory,
-  CredentialRecord
+  CredentialRecord,
 } from '../types';
-import { equipmentService } from '../services/equipmentService';
-import { maintenanceService } from '../services/maintenanceService';
-import { bitacoraService } from '../services/bitacoraService';
-import { credentialService } from '../services/credentialService';
-import { manualService } from '../services/manualService';
-import { authStorage } from '../utils/authStorage';
+import { db } from '../utils/db';
+
+const newId = () => crypto.randomUUID();
+const now = () => new Date().toISOString();
 
 export function usePersistence() {
   const [equipments, setEquipmentsState] = useState<Equipment[]>([]);
@@ -24,382 +27,220 @@ export function usePersistence() {
   const [credCategories, setCredCategoriesState] = useState<CredentialCategory[]>([]);
   const [credentials, setCredentialsState] = useState<CredentialRecord[]>([]);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Función para cargar todos los datos
-  const loadAllData = useCallback(async () => {
-    // Solo cargar si hay token (usuario autenticado)
-    const token = authStorage.getToken();
-    if (!token) {
-      setLoading(false);
-      return;
-    }
+  // ─── Carga inicial desde IndexedDB ───────────────────────────────────────
 
+  const loadAllData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Cargar datos en paralelo
       const [
-        equipmentsRes,
-        maintenancesRes,
-        bitacoraRes,
-        foldersRes,
-        manualsRes,
-        categoriesRes,
-        credentialsRes,
+        eqs, mains, bitacoraArr, fols, mans, cats, creds,
       ] = await Promise.all([
-        equipmentService.getAll().catch(() => ({ data: [] })),
-        maintenanceService.getAll().catch(() => ({ data: [] })),
-        bitacoraService.getAll().catch(() => ({ data: [] })),
-        manualService.getAllFolders().catch(() => ({ data: [] })),
-        manualService.getAll().catch(() => ({ data: [] })),
-        credentialService.getAllCategories().catch(() => ({ data: [] })),
-        credentialService.getAll().catch(() => ({ data: [] })),
+        db.getAll<Equipment>('equipments'),
+        db.getAll<MaintenanceRecord>('maintenances'),
+        db.getAll<BitacoraDay & { id: string }>('bitacora'),
+        db.getAll<ManualFolder>('folders'),
+        db.getAll<ManualFile>('manuals'),
+        db.getAll<CredentialCategory>('credCategories'),
+        db.getAll<CredentialRecord>('credentials'),
       ]);
 
-      setEquipmentsState(equipmentsRes.data || []);
-      setMaintenancesState(maintenancesRes.data || []);
+      setEquipmentsState(eqs);
+      setMaintenancesState(mains);
 
-      // Convertir array de bitácora a objeto indexado por fecha
       const bitacoraMap: Record<string, BitacoraDay> = {};
-      if (bitacoraRes.data) {
-        bitacoraRes.data.forEach((day: BitacoraDay) => {
-          bitacoraMap[day.date] = day;
-        });
-      }
+      for (const day of bitacoraArr) bitacoraMap[day.date] = day;
       setBitacoraState(bitacoraMap);
 
-      setFoldersState(foldersRes.data || []);
-      setManualsState(manualsRes.data || []);
-      setCredCategoriesState(categoriesRes.data || []);
-      setCredentialsState(credentialsRes.data || []);
-    } catch (err: any) {
-      console.error('Error loading data:', err);
-      setError(err.message || 'Error al cargar los datos');
+      setFoldersState(fols);
+      setManualsState(mans);
+      setCredCategoriesState(cats);
+      setCredentialsState(creds);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error al cargar los datos');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Cargar datos al iniciar SOLO si hay token
-  useEffect(() => {
-    loadAllData();
-  }, [loadAllData]);
+  useEffect(() => { loadAllData(); }, [loadAllData]);
 
-  // Funciones para actualizar equipos
-  const setEquipments = async (data: Equipment[]) => {
-    setEquipmentsState(data);
-  };
+  // ─── Equipos ──────────────────────────────────────────────────────────────
+
+  const setEquipments = (data: Equipment[]) => setEquipmentsState(data);
 
   const addEquipment = async (equipment: Equipment) => {
-    try {
-      const response = await equipmentService.create(equipment);
-      if (response.success && response.data) {
-        // Actualizar la lista inmediatamente con el nuevo equipo
-        setEquipmentsState((prev) => [response.data, ...prev]);
-        return response;
-      } else {
-        throw new Error(response.message || 'Error al guardar el equipo');
-      }
-    } catch (err: any) {
-      console.error('Error adding equipment:', err);
-      // Re-lanzar el error para que el componente pueda manejarlo
-      throw new Error(err.message || 'Error al guardar el equipo en la base de datos');
-    }
+    const item: Equipment = { ...equipment, id: equipment.id || newId() };
+    await db.put('equipments', item);
+    setEquipmentsState((prev) => [item, ...prev]);
+    return { success: true, data: item };
   };
 
   const updateEquipment = async (id: string, data: Partial<Equipment>) => {
-    try {
-      const response = await equipmentService.update(id, data);
-      if (response.success) {
-        setEquipmentsState((prev) =>
-          prev.map((eq) => (eq.id === id ? response.data : eq))
-        );
-      }
-      return response;
-    } catch (err: any) {
-      console.error('Error updating equipment:', err);
-      throw err;
-    }
+    const current = await db.get<Equipment>('equipments', id);
+    const updated = { ...(current ?? {}), ...data, id } as Equipment;
+    await db.put('equipments', updated);
+    setEquipmentsState((prev) => prev.map((eq) => (eq.id === id ? updated : eq)));
+    return { success: true, data: updated };
   };
 
   const deleteEquipment = async (id: string) => {
-    try {
-      const response = await equipmentService.delete(id);
-      if (response.success) {
-        // Eliminar el equipo de la lista inmediatamente
-        setEquipmentsState((prev) => prev.filter((eq) => eq.id !== id));
-      }
-      return response;
-    } catch (err: any) {
-      console.error('Error deleting equipment:', err);
-      throw new Error(err.message || 'Error al eliminar el equipo');
-    }
+    await db.remove('equipments', id);
+    setEquipmentsState((prev) => prev.filter((eq) => eq.id !== id));
+    return { success: true };
   };
 
-  // Funciones para mantenimientos
-  const setMaintenances = (data: MaintenanceRecord[]) => {
-    setMaintenancesState(data);
-  };
+  // ─── Mantenimientos ───────────────────────────────────────────────────────
+
+  const setMaintenances = (data: MaintenanceRecord[]) => setMaintenancesState(data);
 
   const addMaintenance = async (maintenance: MaintenanceRecord) => {
-    try {
-      const response = await maintenanceService.create(maintenance);
-      if (response.success) {
-        setMaintenancesState((prev) => [response.data, ...prev]);
-      }
-      return response;
-    } catch (err: any) {
-      console.error('Error adding maintenance:', err);
-      throw err;
-    }
+    const item: MaintenanceRecord = { ...maintenance, id: maintenance.id || newId() };
+    await db.put('maintenances', item);
+    setMaintenancesState((prev) => [item, ...prev]);
+    return { success: true, data: item };
   };
 
-  // Funciones para bitácora
+  // ─── Bitácora ─────────────────────────────────────────────────────────────
+
   const saveBitacoraDay = async (day: BitacoraDay) => {
-    try {
-      const response = await bitacoraService.createOrUpdate(day);
-      if (response.success) {
-        setBitacoraState((prev) => ({ ...prev, [day.date]: response.data }));
-      }
-      return response;
-    } catch (err: any) {
-      console.error('Error saving bitacora:', err);
-      throw err;
-    }
+    // Se usa `date` como id para garantizar unicidad por día
+    const item = { ...day, id: day.date };
+    await db.put('bitacora', item);
+    setBitacoraState((prev) => ({ ...prev, [day.date]: day }));
+    return { success: true, data: day };
   };
 
-  // Funciones para carpetas
-  const setFolders = (data: ManualFolder[]) => {
-    setFoldersState(data);
+  // ─── Carpetas de Manuales ─────────────────────────────────────────────────
+
+  const setFolders = async (data: ManualFolder[]) => {
+    const withIds = data.map((f) => ({ ...f, id: f.id || newId() }));
+    await db.clear('folders');
+    await db.bulkPut('folders', withIds);
+    setFoldersState(withIds);
   };
 
   const addFolder = async (folder: Omit<ManualFolder, 'id' | 'createdAt' | 'updatedAt'>) => {
-    try {
-      const response = await manualService.createFolder(folder);
-      if (response.success) {
-        setFoldersState((prev) => [...prev, response.data]);
-      }
-      return response;
-    } catch (err: any) {
-      console.error('Error adding folder:', err);
-      throw err;
-    }
+    const item: ManualFolder = { ...folder, id: newId(), createdAt: now(), updatedAt: now() };
+    await db.put('folders', item);
+    setFoldersState((prev) => [...prev, item]);
+    return { success: true, data: item };
   };
 
-  // Funciones para manuales
-  const setManuals = (data: ManualFile[]) => {
-    setManualsState(data);
+  // ─── Manuales / Wiki ──────────────────────────────────────────────────────
+
+  const setManuals = async (data: ManualFile[]) => {
+    const withIds = data.map((m) => ({ ...m, id: m.id || newId() }));
+    await db.clear('manuals');
+    await db.bulkPut('manuals', withIds);
+    setManualsState(withIds);
   };
 
   const addManual = async (manual: Omit<ManualFile, 'id' | 'createdAt' | 'updatedAt'>) => {
-    try {
-      const response = await manualService.create(manual);
-      if (response.success) {
-        setManualsState((prev) => [...prev, response.data]);
-      }
-      return response;
-    } catch (err: any) {
-      console.error('Error adding manual:', err);
-      throw err;
-    }
+    const item: ManualFile = { ...manual, id: newId(), createdAt: now(), updatedAt: now() };
+    await db.put('manuals', item);
+    setManualsState((prev) => [...prev, item]);
+    return { success: true, data: item };
   };
 
-  // Funciones para categorías de credenciales
+  // ─── Categorías de Credenciales ───────────────────────────────────────────
+
   const saveCredCategories = async (data: CredentialCategory[]) => {
-    try {
-      // Convertir IDs a strings para comparación
-      const getIdString = (item: any) => {
-        const id = item.id || item._id;
-        return id ? String(id) : null;
-      };
-
-      const currentIds = new Set(
-        credCategories.map(c => getIdString(c)).filter(Boolean)
-      );
-
-      // Encontrar nuevas categorías (las que no tienen id en la lista actual)
-      const newCategories = data.filter(cat => {
-        const catId = getIdString(cat);
-        return catId && !currentIds.has(catId);
-      });
-
-      // Crear nuevas categorías en el backend
-      for (const category of newCategories) {
-        const { id, createdAt, ...categoryData } = category as any;
-        await credentialService.createCategory(categoryData);
-      }
-
-      // Recargar todas las categorías desde el backend
-      const response = await credentialService.getAllCategories();
-      setCredCategoriesState(response.data || []);
-    } catch (err: any) {
-      console.error('Error saving credential categories:', err);
-      // Si falla, al menos actualizar el estado local
-      setCredCategoriesState(data);
-    }
+    const withIds = data.map((c) => ({ ...c, id: c.id || newId() }));
+    await db.clear('credCategories');
+    await db.bulkPut('credCategories', withIds);
+    setCredCategoriesState(withIds);
   };
 
   const addCredCategory = async (category: Omit<CredentialCategory, 'id' | 'createdAt'>) => {
-    try {
-      const response = await credentialService.createCategory(category);
-      if (response.success) {
-        setCredCategoriesState((prev) => [...prev, response.data]);
-      }
-      return response;
-    } catch (err: any) {
-      console.error('Error adding credential category:', err);
-      throw err;
-    }
+    const item: CredentialCategory = { ...category, id: newId(), createdAt: now() };
+    await db.put('credCategories', item);
+    setCredCategoriesState((prev) => [...prev, item]);
+    return { success: true, data: item };
   };
 
-  // Funciones para credenciales
+  // ─── Credenciales ─────────────────────────────────────────────────────────
+
   const saveCredentials = async (data: CredentialRecord[]) => {
-    try {
-      // Identificar operaciones:
-      // 1. Nuevas credenciales (no están en la lista actual)
-      // 2. Credenciales actualizadas (están en ambas listas pero con cambios)
-      // 3. Credenciales eliminadas (están en la lista actual pero no en la nueva)
-
-      // Convertir todos los IDs a strings para comparación
-      const getIdString = (item: any) => {
-        const id = item.id || item._id;
-        return id ? String(id) : null;
-      };
-
-      const currentIds = new Set(
-        credentials.map(c => getIdString(c)).filter(Boolean)
-      );
-      const newIds = new Set(
-        data.map(c => getIdString(c)).filter(Boolean)
-      );
-
-      // Crear nuevas credenciales
-      const newCredentials = data.filter(cred => {
-        const credId = getIdString(cred);
-        return credId && !currentIds.has(credId);
-      });
-
-      for (const credential of newCredentials) {
-        const { id, createdAt, updatedAt, history, ...credData } = credential as any;
-        await credentialService.create(credData);
-      }
-
-      // Actualizar credenciales existentes
-      const existingCredentials = data.filter(cred => {
-        const credId = getIdString(cred);
-        return credId && currentIds.has(credId);
-      });
-
-      for (const credential of existingCredentials) {
-        const credId = getIdString(credential);
-        if (credId) {
-          const { id, createdAt, updatedAt, ...credData } = credential as any;
-          await credentialService.update(credId, credData);
-        }
-      }
-
-      // Eliminar credenciales que ya no están
-      const deletedIds = [...currentIds].filter(id => !newIds.has(id));
-      for (const id of deletedIds) {
-        await credentialService.delete(id as string);
-      }
-
-      // Recargar todas las credenciales desde el backend
-      const response = await credentialService.getAll();
-      setCredentialsState(response.data || []);
-    } catch (err: any) {
-      console.error('Error saving credentials:', err);
-      // Si falla, al menos actualizar el estado local
-      setCredentialsState(data);
-    }
+    const withIds = data.map((c) => ({ ...c, id: c.id || newId() }));
+    await db.clear('credentials');
+    await db.bulkPut('credentials', withIds);
+    setCredentialsState(withIds);
   };
 
-  const addCredential = async (credential: Omit<CredentialRecord, 'id' | 'createdAt' | 'updatedAt' | 'history'>) => {
-    try {
-      const response = await credentialService.create(credential);
-      if (response.success) {
-        setCredentialsState((prev) => [...prev, response.data]);
-      }
-      return response;
-    } catch (err: any) {
-      console.error('Error adding credential:', err);
-      throw err;
-    }
+  const addCredential = async (
+    credential: Omit<CredentialRecord, 'id' | 'createdAt' | 'updatedAt' | 'history'>
+  ) => {
+    const item: CredentialRecord = {
+      ...credential,
+      id: newId(),
+      history: [],
+      createdAt: now(),
+      updatedAt: now(),
+    };
+    await db.put('credentials', item);
+    setCredentialsState((prev) => [...prev, item]);
+    return { success: true, data: item };
   };
 
   const updateCredential = async (id: string, data: Partial<CredentialRecord>) => {
-    try {
-      const response = await credentialService.update(id, data);
-      if (response.success) {
-        setCredentialsState((prev) =>
-          prev.map((cred) => {
-            const credId = String(cred.id || (cred as any)._id);
-            return credId === String(id) ? response.data : cred;
-          })
-        );
-      }
-      return response;
-    } catch (err: any) {
-      console.error('Error updating credential:', err);
-      throw err;
-    }
+    const current = await db.get<CredentialRecord>('credentials', id);
+    const updated = { ...(current ?? {}), ...data, id, updatedAt: now() } as CredentialRecord;
+    await db.put('credentials', updated);
+    setCredentialsState((prev) => prev.map((c) => (c.id === id ? updated : c)));
+    return { success: true, data: updated };
   };
 
   const deleteCredential = async (id: string) => {
-    try {
-      const response = await credentialService.delete(id);
-      if (response.success) {
-        setCredentialsState((prev) =>
-          prev.filter((cred) => {
-            const credId = String(cred.id || (cred as any)._id);
-            return credId !== String(id);
-          })
-        );
-      }
-      return response;
-    } catch (err: any) {
-      console.error('Error deleting credential:', err);
-      throw err;
-    }
+    await db.remove('credentials', id);
+    setCredentialsState((prev) => prev.filter((c) => c.id !== id));
+    return { success: true };
   };
 
   return {
+    // Estado
     equipments,
+    maintenances,
+    bitacora,
+    folders,
+    manuals,
+    credCategories,
+    credentials,
+    loading,
+    error,
+
+    // Equipos
     setEquipments,
     addEquipment,
     updateEquipment,
     deleteEquipment,
 
-    maintenances,
+    // Mantenimientos
     setMaintenances,
     addMaintenance,
 
-    bitacora,
+    // Bitácora
     saveBitacoraDay,
 
-    folders,
+    // Carpetas y manuales
     setFolders,
     addFolder,
-
-    manuals,
     setManuals,
     addManual,
 
-    credCategories,
+    // Credenciales
     saveCredCategories,
     addCredCategory,
-
-    credentials,
     saveCredentials,
     addCredential,
     updateCredential,
     deleteCredential,
 
-    loading,
-    error,
-    loadAllData, // Exportar para poder recargar manualmente
+    // Control
+    loadAllData,
   };
 }

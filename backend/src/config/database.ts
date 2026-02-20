@@ -1,10 +1,9 @@
 import mongoose from 'mongoose';
+import { config } from './env';
 
 export const connectDB = async (): Promise<void> => {
   try {
-    const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/GestionTI';
-
-    await mongoose.connect(mongoURI);
+    await mongoose.connect(config.mongodb.uri);
 
     console.log('✅ MongoDB conectado exitosamente a la base de datos: GestionTI');
 
